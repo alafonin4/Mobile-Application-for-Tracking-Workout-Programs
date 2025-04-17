@@ -1,0 +1,65 @@
+package ru.alafonin4.socialservice.controllers;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import ru.alafonin4.socialservice.entities.FriendRequest;
+import ru.alafonin4.socialservice.services.FriendRequestService;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/friendRequests")
+public class FriendRequestController {
+
+    @Autowired
+    private FriendRequestService friendRequestService;
+
+    @PostMapping("/")
+    public ResponseEntity<FriendRequest> sendFriendRequest(@RequestBody FriendRequest request) {
+        FriendRequest savedRequest = friendRequestService.sendFriendRequest(request);
+        return ResponseEntity.ok(savedRequest);
+    }
+
+    @PutMapping("/{id}/accept")
+    public ResponseEntity<FriendRequest> acceptFriendRequest(@PathVariable("id") Long requestId) {
+        FriendRequest acceptedRequest = friendRequestService.acceptFriendRequest(requestId);
+        return ResponseEntity.ok(acceptedRequest);
+    }
+
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<FriendRequest> rejectFriendRequest(@PathVariable("id") Long requestId) {
+        FriendRequest rejectedRequest = friendRequestService.rejectFriendRequest(requestId);
+        return ResponseEntity.ok(rejectedRequest);
+    }
+
+    @GetMapping("/received/{receiverId}")
+    public ResponseEntity<List<FriendRequest>> getReceivedFriendRequests(@PathVariable("receiverId") Long receiverId) {
+        List<FriendRequest> requests = friendRequestService.getReceivedFriendRequests(receiverId);
+        return ResponseEntity.ok(requests);
+    }
+
+    @GetMapping("/sent/{senderId}")
+    public ResponseEntity<List<FriendRequest>> getSentFriendRequests(@PathVariable("senderId") Long senderId) {
+        List<FriendRequest> requests = friendRequestService.getSentFriendRequests(senderId);
+        return ResponseEntity.ok(requests);
+    }
+
+    @GetMapping("/approved/{userId}")
+    public ResponseEntity<List<FriendRequest>> getApprovedFriendRequests(@PathVariable("userId") Long userId) {
+        List<FriendRequest> friends = friendRequestService.getApprovedFriendRequests(userId);
+        return ResponseEntity.ok(friends);
+    }
+
+    @GetMapping("/sent/pending/{senderId}")
+    public ResponseEntity<List<FriendRequest>> getPendingSentFriendRequests(@PathVariable("senderId") Long senderId) {
+        List<FriendRequest> pending = friendRequestService.getPendingSentRequests(senderId);
+        return ResponseEntity.ok(pending);
+    }
+
+    @GetMapping("/received/pending/{receiverId}")
+    public ResponseEntity<List<FriendRequest>> getPendingReceivedFriendRequests(@PathVariable("receiverId") Long receiverId) {
+        List<FriendRequest> pending = friendRequestService.getPendingReceivedRequests(receiverId);
+        return ResponseEntity.ok(pending);
+    }
+}
