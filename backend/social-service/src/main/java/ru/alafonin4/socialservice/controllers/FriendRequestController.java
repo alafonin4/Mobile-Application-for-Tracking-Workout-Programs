@@ -3,6 +3,7 @@ package ru.alafonin4.socialservice.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.alafonin4.socialservice.dto.FriendRequestDTO;
 import ru.alafonin4.socialservice.entities.FriendRequest;
 import ru.alafonin4.socialservice.services.FriendRequestService;
 
@@ -16,7 +17,7 @@ public class FriendRequestController {
     private FriendRequestService friendRequestService;
 
     @PostMapping("/")
-    public ResponseEntity<FriendRequest> sendFriendRequest(@RequestBody FriendRequest request) {
+    public ResponseEntity<FriendRequest> sendFriendRequest(@RequestBody FriendRequestDTO request) {
         FriendRequest savedRequest = friendRequestService.sendFriendRequest(request);
         return ResponseEntity.ok(savedRequest);
     }

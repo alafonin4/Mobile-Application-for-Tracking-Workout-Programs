@@ -2,7 +2,14 @@ package ru.alafonin4.workoutservice.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.alafonin4.workoutservice.model.TrainingProgram;
 import ru.alafonin4.workoutservice.service.TrainingProgramService;
 
@@ -15,7 +22,7 @@ public class TrainingProgramController {
     @Autowired
     private TrainingProgramService trainingProgramService;
 
-    @PostMapping("/")
+    @PostMapping({"", "/"})
     public ResponseEntity<TrainingProgram> createProgram(@RequestBody TrainingProgram program) {
         TrainingProgram createdProgram = trainingProgramService.createProgram(program);
         return ResponseEntity.ok(createdProgram);

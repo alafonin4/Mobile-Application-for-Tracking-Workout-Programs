@@ -2,6 +2,8 @@ package ru.alafonin4.socialservice.entities;
 
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import ru.alafonin4.socialservice.enums.FriendRequestStatus;
@@ -9,10 +11,12 @@ import ru.alafonin4.socialservice.enums.FriendRequestStatus;
 import java.time.LocalDateTime;
 
 @Entity
-@Setter
-@Getter
 @Table(name = "friend_requests")
 public class FriendRequest {
+
+    public Long getId() {
+        return id;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,4 +26,36 @@ public class FriendRequest {
     @Enumerated(EnumType.STRING)
     private FriendRequestStatus status;
     private LocalDateTime createdAt;
+
+    public Long getSenderId() {
+        return senderId;
+    }
+
+    public void setSenderId(Long senderId) {
+        this.senderId = senderId;
+    }
+
+    public Long getReceiverId() {
+        return receiverId;
+    }
+
+    public void setReceiverId(Long receiverId) {
+        this.receiverId = receiverId;
+    }
+
+    public FriendRequestStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(FriendRequestStatus status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

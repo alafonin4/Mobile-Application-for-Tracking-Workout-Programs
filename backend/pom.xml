@@ -17,12 +17,12 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>discovery-server</module>
+        <module>api-gateway</module>
         <module>social-service</module>
         <module>workout-service</module>
         <module>user-service</module>
         <module>auth-service</module>
-        <module>api-gateway</module>
-        <module>discovery-server</module>
     </modules>
 
     <properties>
@@ -30,6 +30,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud.version>2023.0.0</spring-cloud.version>
+        <lombok.version>1.18.40</lombok.version>
     </properties>
 
     <dependencyManagement>
@@ -47,6 +48,12 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <optional>true</optional>
             </dependency>
         </dependencies>
     </dependencyManagement>

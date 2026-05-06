@@ -1,38 +1,58 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from "react";
+import { useRouter } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
-const WorkoutCard = ({ workout }) => {
+export default function WorkoutCard({ workout }) {
+  const router = useRouter();
+  const formattedDate = workout.workoutDate
+    ? new Date(workout.workoutDate).toLocaleDateString()
+    : "Без даты";
+
   return (
-    <View style={styles.card}>
-      <Text style={styles.title}>{workout.name}</Text>
-      <Text style={styles.date}>Дата: {new Date(workout.createdAt).toLocaleDateString()}</Text>
-      <Text style={styles.details}>Упражнений: {workout.exercises?.length || 0}</Text>
-    </View>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() =>
+        router.push({
+          pathname: "/(tabs)/(workout)/workout-details",
+          params: { workout: JSON.stringify(workout) },
+        })
+      }
+    >
+      <Text style={styles.title}>{workout.name || `Тренировка #${workout.id}`}</Text>
+      <Text style={styles.date}>Дата: {formattedDate}</Text>
+      <Text style={styles.details}>
+        Упражнений: {workout.workoutExercises?.length || 0}
+      </Text>
+      <Text style={styles.link}>Открыть тренировку</Text>
+    </TouchableOpacity>
   );
-};
-
-export default WorkoutCard;
+}
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#2D2D2D',
+    backgroundColor: "#2D2D2D",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
   },
   title: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   date: {
-    color: '#bbb',
+    color: "#bbb",
     fontSize: 14,
     marginTop: 4,
   },
   details: {
-    color: '#ccc',
+    color: "#ccc",
     fontSize: 14,
     marginTop: 4,
+  },
+  link: {
+    color: "#60A5FA",
+    marginTop: 10,
+    fontWeight: "600",
   },
 });

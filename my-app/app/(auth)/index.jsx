@@ -25,6 +25,7 @@ const Index = () => {
     try {
       setLoginError(null);  
       const data = await login(email, password);
+      console.log(data);
       if (!data || !data.id) {
         throw new Error("Не удалось получить ID из ответа.");
       }

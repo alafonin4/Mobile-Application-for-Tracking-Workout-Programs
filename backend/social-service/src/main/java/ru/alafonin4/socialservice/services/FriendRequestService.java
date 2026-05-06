@@ -2,6 +2,7 @@ package ru.alafonin4.socialservice.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.alafonin4.socialservice.dto.FriendRequestDTO;
 import ru.alafonin4.socialservice.entities.FriendRequest;
 import ru.alafonin4.socialservice.enums.FriendRequestStatus;
 import ru.alafonin4.socialservice.repositories.FriendRequestRepository;
@@ -15,14 +16,15 @@ public class FriendRequestService {
     @Autowired
     private FriendRequestRepository friendRequestRepository;
 
-    // Отправка запроса в друзья
-    public FriendRequest sendFriendRequest(FriendRequest request) {
+    public FriendRequest sendFriendRequest(FriendRequestDTO req) {
+        FriendRequest request = new FriendRequest();
+        request.setReceiverId(req.getReceiverId());
+        request.setSenderId(req.getSenderId());
         request.setStatus(FriendRequestStatus.PENDING);
         request.setCreatedAt(LocalDateTime.now());
         return friendRequestRepository.save(request);
     }
 
-    // Принятие запроса в друзья
     public FriendRequest acceptFriendRequest(Long requestId) {
         FriendRequest request = friendRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Friend request not found with id " + requestId));
@@ -30,7 +32,6 @@ public class FriendRequestService {
         return friendRequestRepository.save(request);
     }
 
-    // Отклонение запроса в друзья
     public FriendRequest rejectFriendRequest(Long requestId) {
         FriendRequest request = friendRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Friend request not found with id " + requestId));
@@ -38,7 +39,6 @@ public class FriendRequestService {
         return friendRequestRepository.save(request);
     }
 
-    // Получение списка входящих запросов (ожидающих)
     public List<FriendRequest> getReceivedFriendRequests(Long receiverId) {
         return friendRequestRepository.findByReceiverIdAndStatus(receiverId, FriendRequestStatus.PENDING);
     }

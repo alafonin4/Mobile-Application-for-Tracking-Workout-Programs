@@ -1,6 +1,6 @@
 import * as Yup from "yup";
 
-const emailRegExp = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/
+const emailRegExp = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
 export const registrationValidationSchema = Yup.object().shape({
   firstName: Yup.string().required("Имя обязательно"),
@@ -27,29 +27,31 @@ export const authorizationValidationSchema = Yup.object().shape({
 
 export const editUserInfoValidationSchema = Yup.object().shape({
   firstName: Yup.string()
-    .required('Имя обязательно')
-    .min(2, 'Имя должно содержать минимум 2 символа'),
+    .required("Имя обязательно")
+    .min(2, "Имя должно содержать минимум 2 символа"),
   lastName: Yup.string()
-    .required('Фамилия обязательна')
-    .min(2, 'Фамилия должна содержать минимум 2 символа'),
-  middleName: Yup.string()
-    .min(2, 'Отчество должно содержать минимум 2 символа'),
+    .required("Фамилия обязательна")
+    .min(2, "Фамилия должна содержать минимум 2 символа"),
   email: Yup.string()
-    .required('Email обязателен')
-    .matches(emailRegExp, 'Некорректный email'),
-  description: Yup.string()
-    .max(500, 'Описание не должно превышать 500 символов'),
+    .required("Email обязателен")
+    .matches(emailRegExp, "Некорректный email"),
+  bio: Yup.string().max(500, "Описание не должно превышать 500 символов"),
+  bodyWeight: Yup.number()
+    .transform((value, originalValue) => (originalValue === "" ? null : value))
+    .nullable()
+    .min(0, "Вес не может быть отрицательным"),
 });
 
 export const editPasswordValidationSchema = Yup.object().shape({
+  currentPassword: Yup.string().required("Текущий пароль обязателен"),
   newPassword: Yup.string()
-    .required('Новый пароль обязателен')
-    .min(8, 'Пароль должен содержать минимум 8 символов')
+    .required("Новый пароль обязателен")
+    .min(8, "Пароль должен содержать минимум 8 символов")
     .matches(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/,
-      'Пароль должен содержать хотя бы одну заглавную букву, одну строчную букву и одну цифру'
+      "Пароль должен содержать заглавную букву, строчную букву и цифру"
     ),
   confirmNewPassword: Yup.string()
-    .required('Подтверждение пароля обязательно')
-    .oneOf([Yup.ref('newPassword')], 'Пароли должны совпадать'),
+    .required("Подтверждение пароля обязательно")
+    .oneOf([Yup.ref("newPassword")], "Пароли должны совпадать"),
 });

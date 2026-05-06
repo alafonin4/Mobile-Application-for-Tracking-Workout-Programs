@@ -1,38 +1,55 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from "react";
+import { useRouter } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
-const ProgramCard = ({ program }) => {
+export default function ProgramCard({ program }) {
+  const router = useRouter();
+
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() =>
+        router.push({
+          pathname: "/(tabs)/(workout)/program-details",
+          params: { program: JSON.stringify(program) },
+        })
+      }
+    >
       <Text style={styles.title}>{program.name}</Text>
-      <Text style={styles.duration}>Длительность: {program.duration} недель</Text>
-      <Text style={styles.workouts}>Тренировок: {program.workouts?.length || 0}</Text>
-    </View>
+      <Text style={styles.days}>Дней в программе: {program.trainingDays?.length || 0}</Text>
+      <Text style={styles.description}>
+        {program.description || "Описание пока не добавлено."}
+      </Text>
+      <Text style={styles.link}>Открыть программу</Text>
+    </TouchableOpacity>
   );
-};
-
-export default ProgramCard;
+}
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#2D2D2D',
+    backgroundColor: "#2D2D2D",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
   },
   title: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-  duration: {
-    color: '#bbb',
+  days: {
+    color: "#bbb",
     fontSize: 14,
     marginTop: 4,
   },
-  workouts: {
-    color: '#ccc',
+  description: {
+    color: "#ccc",
     fontSize: 14,
-    marginTop: 4,
+    marginTop: 8,
+  },
+  link: {
+    color: "#60A5FA",
+    marginTop: 10,
+    fontWeight: "600",
   },
 });

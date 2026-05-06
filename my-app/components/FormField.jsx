@@ -12,6 +12,8 @@ export const FormField = ({
   secureTextEntry = false,
   multiline = false,
   autoCapitalize = 'none',
+  keyboardType = 'default',
+  editable = true,
 }) => {
   return (
     <View style={styles.fieldContainer}>
@@ -28,6 +30,8 @@ export const FormField = ({
         secureTextEntry={secureTextEntry}
         multiline={multiline}
         autoCapitalize={autoCapitalize}
+        keyboardType={keyboardType}
+        editable={editable}
       />
       {touched[field] && errors[field] && (
         <Text style={styles.errorText}>{errors[field]}</Text>

@@ -1,6 +1,7 @@
 package ru.alafonin4.authserver.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,8 +17,10 @@ import ru.alafonin4.authserver.services.UserService;
 @RequestMapping("/token")
 @RequiredArgsConstructor
 public class TokenController {
-    private final JwtService jwtService;
-    private final UserService userService;
+    @Autowired
+    private JwtService jwtService;
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/validate")
     public ResponseEntity<Boolean> validateToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String authToken) {

@@ -4,7 +4,7 @@ import { API_URL } from '../../constants/api_url';
 
 export const getFriends = async (userId) => {
   try {
-    const url = `http://192.168.116.232:8083/api/friendRequests/approved/${userId}`;
+    const url = `http://10.110.84.11:8083/api/friendRequests/approved/${userId}`;
     const response = await axios.get(url);
     return response.data;
   } catch (error) {

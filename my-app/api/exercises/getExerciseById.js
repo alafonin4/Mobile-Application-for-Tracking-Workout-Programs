@@ -1,13 +1,14 @@
+import { API_URL } from "../../constants/api_url";
+
 export const getExerciseById = async (id) => {
-    try {
-      const response = await fetch(`https://your-api.com/api/exercises/${id}`); // Замени на свой реальный URL
-      if (!response.ok) {
-        throw new Error('Не удалось получить упражнение');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error(`Ошибка при получении упражнения с ID ${id}:`, error);
-      return null;
+  try {
+    const response = await fetch(`http://10.110.84.11:8083/api/exercises/${id}`);
+    if (!response.ok) {
+      throw new Error("Failed to load exercise");
     }
-  };
-  
+    return await response.json();
+  } catch (error) {
+    console.error(`Failed to load exercise ${id}:`, error);
+    return null;
+  }
+};

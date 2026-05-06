@@ -2,8 +2,19 @@ package ru.alafonin4.workoutservice.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import ru.alafonin4.workoutservice.dto.ExerciseProgressResponse;
+import ru.alafonin4.workoutservice.dto.WorkoutProgressResponse;
 import ru.alafonin4.workoutservice.model.Workout;
+import ru.alafonin4.workoutservice.service.WorkoutProgressService;
 import ru.alafonin4.workoutservice.service.WorkoutService;
 
 import java.util.List;
@@ -15,7 +26,10 @@ public class WorkoutController {
     @Autowired
     private WorkoutService workoutService;
 
-    @PostMapping("/")
+    @Autowired
+    private WorkoutProgressService workoutProgressService;
+
+    @PostMapping({"", "/"})
     public ResponseEntity<Workout> createWorkout(@RequestBody Workout workout) {
         Workout createdWorkout = workoutService.createWorkout(workout);
         return ResponseEntity.ok(createdWorkout);
@@ -47,5 +61,22 @@ public class WorkoutController {
     public ResponseEntity<Void> deleteWorkout(@PathVariable("id") Long id) {
         workoutService.deleteWorkout(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/progress/user/{userId}")
+    public ResponseEntity<WorkoutProgressResponse> getUserProgress(
+            @PathVariable("userId") Long userId,
+            @RequestParam(defaultValue = "1") int months
+    ) {
+        return ResponseEntity.ok(workoutProgressService.getUserProgress(userId, months));
+    }
+
+    @GetMapping("/progress/user/{userId}/exercise/{exerciseId}")
+    public ResponseEntity<ExerciseProgressResponse> getExerciseProgress(
+            @PathVariable("userId") Long userId,
+            @PathVariable("exerciseId") Long exerciseId,
+            @RequestParam(defaultValue = "1") int months
+    ) {
+        return ResponseEntity.ok(workoutProgressService.getExerciseProgress(userId, exerciseId, months));
     }
 }

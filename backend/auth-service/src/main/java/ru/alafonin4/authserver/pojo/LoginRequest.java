@@ -7,8 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@Builder
+
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginRequest implements AuthRequest{
@@ -16,4 +15,22 @@ public class LoginRequest implements AuthRequest{
     private String email;
     @NotBlank(message = "Password cannot be empty.")
     private String password;
+
+    @Override
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

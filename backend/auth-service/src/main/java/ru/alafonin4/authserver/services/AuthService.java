@@ -1,6 +1,7 @@
 package ru.alafonin4.authserver.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,8 +12,10 @@ import ru.alafonin4.authserver.exceptions.IncorrectPasswordException;
 import ru.alafonin4.authserver.exceptions.NotFoundEmailException;
 import ru.alafonin4.authserver.exceptions.UserAlreadyExistException;
 import ru.alafonin4.authserver.pojo.AuthResponse;
+import ru.alafonin4.authserver.pojo.ChangePasswordRequest;
 import ru.alafonin4.authserver.pojo.LoginRequest;
 import ru.alafonin4.authserver.pojo.RegisterRequest;
+import ru.alafonin4.authserver.repositories.SessionRepository;
 import ru.alafonin4.authserver.repositories.UserRepository;
 
 import java.time.LocalDateTime;
@@ -20,11 +23,16 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-
-    private final UserRepository repository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
-    private final AuthenticationManager manager;
+    @Autowired
+    private UserRepository repository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtService jwtService;
+    @Autowired
+    private AuthenticationManager manager;
+    @Autowired
+    private SessionRepository sessionRepository;
 
     public AuthResponse register(RegisterRequest request) {
 
@@ -33,23 +41,22 @@ public class AuthService {
             throw new UserAlreadyExistException("User already exists.");
         }
 
+        User user1 = new User();
+        user1.setFirstName(request.getFirstName());
+        user1.setLastName(request.getLastName());
+        user1.setEmail(request.getEmail());
+        user1.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user1.setRole(UserRole.CUSTOMER);
+        user1.setCreatedAt(LocalDateTime.now());
 
-        var user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .role(UserRole.CUSTOMER)
-                .createdAt(LocalDateTime.now())
-                .build();
+        User u = repository.save(user1);
 
-        repository.save(user);
+        var jwtToken = jwtService.generateToken(user1);
 
-        var jwtToken = jwtService.generateToken(user);
-
-        return AuthResponse.builder()
-                .token(jwtToken)
-                .build();
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setToken(jwtToken);
+        authResponse.setId(u.getId());
+        return authResponse;
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -57,7 +64,7 @@ public class AuthService {
         if (user.isEmpty()){
             throw new NotFoundEmailException("User with this email was not found.");
         }
-        if (passwordEncoder.encode(request.getPassword()).equals(user.get().getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.get().getPassword())) {
             throw new IncorrectPasswordException("");
         }
         manager.authenticate(new UsernamePasswordAuthenticationToken(
@@ -68,9 +75,30 @@ public class AuthService {
 
         var jwtToken = jwtService.generateToken(user.get());
 
-        return AuthResponse.builder()
-                .token(jwtToken)
-                .id(user.get().getId())
-                .build();
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setToken(jwtToken);
+        authResponse.setId(user.get().getId());
+        return authResponse;
+    }
+
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new NotFoundEmailException("User not found."));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IncorrectPasswordException("Current password is incorrect.");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        repository.save(user);
+    }
+
+    public void deleteAccount(Long userId) {
+        if (!repository.existsById(userId)) {
+            throw new NotFoundEmailException("User not found.");
+        }
+
+        sessionRepository.deleteByUserId(userId);
+        repository.deleteById(userId);
     }
 }

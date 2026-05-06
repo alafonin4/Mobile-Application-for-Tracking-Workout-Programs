@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface TrainingProgramRepository extends JpaRepository<TrainingProgram, Long> {
-    List<TrainingProgram> findByUserId(Long userId);
+    List<TrainingProgram> findByUserIdOrderByIdDesc(Long userId);
 }

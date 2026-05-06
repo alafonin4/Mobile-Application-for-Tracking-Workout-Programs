@@ -1,15 +1,19 @@
+import { useCallback } from "react";
 import { useStorageState } from "./useStorageState";
 
 export function useUserId() {
   const [state, setStateRaw, isLoaded] = useStorageState("userId");
 
-  const setState = (value) => {
-    if (typeof value === "number") {
-      setStateRaw(String(value));
-    } else {
-      setStateRaw(value);
-    }
-  };
+  const setState = useCallback(
+    (value) => {
+      if (typeof value === "number") {
+        setStateRaw(String(value));
+      } else {
+        setStateRaw(value);
+      }
+    },
+    [setStateRaw]
+  );
 
   const numericUserId =
     typeof state === "string" && !isNaN(Number(state)) ? Number(state) : null;

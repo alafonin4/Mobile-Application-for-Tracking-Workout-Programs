@@ -18,9 +18,9 @@ const SignUp = () => {
   const [, setUserId] = useUserId();
   const onSubmitHandler = async (values, { setSubmitting }) => {
     try {
-      await sign_up(values.firstName, values.lastName, values.email, values.password);
+      const us = await sign_up(values.firstName, values.lastName, values.email, values.password);
 
-      const user = await create_user_profile(values.firstName, values.lastName, values.email);
+      const user = await create_user_profile(us.id, values.firstName, values.lastName, values.email);
 
       if (!user || !user.id) {
         throw new Error("Не удалось получить пользователя из user-сервиса");
