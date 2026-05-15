@@ -12,4 +12,10 @@ public interface WorkoutRepository extends JpaRepository<Workout, Long> {
     List<Workout> findByUserIdOrderByWorkoutDateAsc(Long userId);
 
     List<Workout> findByUserIdAndWorkoutDateGreaterThanEqualOrderByWorkoutDateAsc(Long userId, LocalDateTime workoutDate);
+
+    List<Workout> findByUserIdAndWorkoutDateGreaterThanEqualAndWorkoutDateLessThanOrderByWorkoutDateAsc(
+            Long userId,
+            LocalDateTime fromDate,
+            LocalDateTime toDate
+    );
 }

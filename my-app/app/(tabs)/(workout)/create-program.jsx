@@ -9,7 +9,9 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
+
 import AddExerciseModal from "../../../components/AddExerciseModal";
+import { getApiErrorMessage } from "../../../api/client";
 import { createProgram } from "../../../api/workout/createProgram";
 import { useUserId } from "../../../hooks/useUserId";
 
@@ -112,6 +114,7 @@ const CreateProgram = () => {
           muscleGroup: day.muscleGroup.trim(),
           exercises: day.exercises.map((exercise) => ({
             exerciseId: exercise.exerciseId,
+            exerciseName: exercise.exerciseName,
             recommendedSets: Number(exercise.recommendedSets) || 0,
             recommendedReps: Number(exercise.recommendedReps) || 0,
             recommendedWeight: Number(exercise.recommendedWeight) || 0,
@@ -122,8 +125,10 @@ const CreateProgram = () => {
       Alert.alert("Успех", "Программа сохранена.");
       router.replace("/(tabs)/(workout)");
     } catch (error) {
-      console.error("Failed to create program:", error);
-      Alert.alert("Ошибка", "Не удалось сохранить программу.");
+      Alert.alert(
+        "Ошибка",
+        getApiErrorMessage(error, "Не удалось сохранить программу.")
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -239,6 +244,7 @@ const CreateProgram = () => {
         visible={showExerciseModal}
         onClose={() => setShowExerciseModal(false)}
         onSelectExercise={addExerciseToDay}
+        userId={userId}
       />
     </ScrollView>
   );

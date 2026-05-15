@@ -1,6 +1,7 @@
 package ru.alafonin4.workoutservice.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +26,7 @@ public class TrainingProgramController {
     @PostMapping({"", "/"})
     public ResponseEntity<TrainingProgram> createProgram(@RequestBody TrainingProgram program) {
         TrainingProgram createdProgram = trainingProgramService.createProgram(program);
-        return ResponseEntity.ok(createdProgram);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdProgram);
     }
 
     @GetMapping("/{id}")
@@ -42,12 +43,8 @@ public class TrainingProgramController {
 
     @PutMapping("/{id}")
     public ResponseEntity<TrainingProgram> updateProgram(@PathVariable("id") Long id, @RequestBody TrainingProgram program) {
-        try {
-            TrainingProgram updatedProgram = trainingProgramService.updateProgram(id, program);
-            return ResponseEntity.ok(updatedProgram);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        TrainingProgram updatedProgram = trainingProgramService.updateProgram(id, program);
+        return ResponseEntity.ok(updatedProgram);
     }
 
     @DeleteMapping("/{id}")

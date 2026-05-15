@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   StyleSheet,
   Text,
@@ -9,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { getApiErrorMessage } from "../../../api/client";
 import { getAllExercises } from "../../../api/exercises/getAllExercises";
 
 const muscleGroups = ["Все", "Грудь", "Спина", "Ноги", "Плечи", "Бицепс", "Трицепс", "Пресс"];
@@ -26,6 +28,11 @@ export default function AllExercisesScreen() {
         const data = await getAllExercises();
         setAllExercises(data);
         setFilteredExercises(data);
+      } catch (error) {
+        Alert.alert(
+          "Ошибка",
+          getApiErrorMessage(error, "Не удалось загрузить список упражнений.")
+        );
       } finally {
         setLoading(false);
       }
@@ -124,7 +131,7 @@ const styles = StyleSheet.create({
   filterContainer: {
     paddingHorizontal: 12,
     paddingTop: 10,
-    paddingBottom: 12,
+    height: "20%",
   },
   filterButton: {
     backgroundColor: "#242424",

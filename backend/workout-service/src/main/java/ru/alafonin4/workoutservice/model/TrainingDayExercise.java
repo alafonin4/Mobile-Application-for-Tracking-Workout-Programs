@@ -25,6 +25,8 @@ public class TrainingDayExercise {
 
     private Long exerciseId;
 
+    private String exerciseName;
+
     private Integer recommendedSets;
     private Integer recommendedReps;
     private Double recommendedWeight;
@@ -51,6 +53,14 @@ public class TrainingDayExercise {
 
     public void setExerciseId(Long exerciseId) {
         this.exerciseId = exerciseId;
+    }
+
+    public String getExerciseName() {
+        return exerciseName;
+    }
+
+    public void setExerciseName(String exerciseName) {
+        this.exerciseName = exerciseName;
     }
 
     public Integer getRecommendedSets() {

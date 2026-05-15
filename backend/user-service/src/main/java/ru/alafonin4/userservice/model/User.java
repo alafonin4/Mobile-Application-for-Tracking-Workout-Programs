@@ -27,8 +27,14 @@ public class User {
     @Column
     private Double bodyWeight;
 
+    @Column(name = "fitness_goal", length = 40)
+    private String fitnessGoal;
+
     @Column(name = "email", nullable = false, length = 50, unique = true)
     private String email;
+
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
+    private String avatarUrl;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -65,12 +71,28 @@ public class User {
         this.bodyWeight = bodyWeight;
     }
 
+    public String getFitnessGoal() {
+        return fitnessGoal;
+    }
+
+    public void setFitnessGoal(String fitnessGoal) {
+        this.fitnessGoal = fitnessGoal;
+    }
+
     public String getEmail() {
         return email;
     }
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 
     public LocalDateTime getCreatedAt() {

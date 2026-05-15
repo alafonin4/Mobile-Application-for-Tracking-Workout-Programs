@@ -13,9 +13,12 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { acceptFriendRequest } from "../../../api/friends/acceptFriendRequest";
+import { getApiErrorMessage } from "../../../api/client";
+import { cancelFriendRequest } from "../../../api/friends/cancelFriendRequest";
 import { getFriends } from "../../../api/friends/getFriends";
 import { getIncomingRequests } from "../../../api/friends/getIncomingRequests";
 import { getOutgoingRequests } from "../../../api/friends/getOutgoingRequests";
+import { removeFriend } from "../../../api/friends/removeFriend";
 import { get_user_profile } from "../../../api/user/get_user_profile";
 import { useUserId } from "../../../hooks/useUserId";
 
@@ -23,6 +26,24 @@ const tabLabels = {
   friends: "Друзья",
   incoming: "Входящие",
   outgoing: "Исходящие",
+};
+
+const actionMap = {
+  friends: {
+    label: "Удалить из друзей",
+    color: "#DC2626",
+    action: "remove",
+  },
+  incoming: {
+    label: "Принять",
+    color: "#16A34A",
+    action: "accept",
+  },
+  outgoing: {
+    label: "Отменить",
+    color: "#F59E0B",
+    action: "cancel",
+  },
 };
 
 const buildDisplayName = (profile, userId) => {
@@ -89,7 +110,10 @@ export default function FriendsScreen() {
       setIncoming(incomingWithProfiles);
       setOutgoing(outgoingWithProfiles);
     } catch (error) {
-      console.warn("Ошибка при загрузке данных друзей:", error);
+      Alert.alert(
+        "Ошибка",
+        getApiErrorMessage(error, "Не удалось загрузить список друзей и заявок.")
+      );
     } finally {
       setRefreshing(false);
     }
@@ -99,31 +123,45 @@ export default function FriendsScreen() {
     loadData();
   }, [loadData]);
 
-  const handleAccept = async (requestId) => {
-    if (processingRequestId != null) {
+  const handleRequestAction = async (action, item) => {
+    if (processingRequestId != null || userId == null) {
       return;
     }
 
-    setProcessingRequestId(requestId);
+    setProcessingRequestId(item.id);
     try {
-      await acceptFriendRequest(requestId);
+      if (action === "accept") {
+        await acceptFriendRequest(item.id);
+      } else if (action === "cancel") {
+        await cancelFriendRequest(item.id, userId);
+      } else if (action === "remove") {
+        await removeFriend(item.id, userId);
+      }
+
       await loadData();
     } catch (error) {
-      console.warn("Не удалось принять заявку:", error);
-      Alert.alert("Ошибка", "Не удалось принять заявку в друзья.");
+      Alert.alert(
+        "Ошибка",
+        getApiErrorMessage(error, "Не удалось выполнить действие с заявкой в друзья.")
+      );
     } finally {
       setProcessingRequestId(null);
     }
   };
 
+  const openUserProfile = (targetUserId) => {
+    router.push(`/(tabs)/(profile)/${targetUserId}`);
+  };
+
   const currentData =
     activeTab === "friends" ? friends : activeTab === "incoming" ? incoming : outgoing;
+  const actionConfig = actionMap[activeTab];
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
         <Text style={styles.title}>Друзья</Text>
-        <Text style={styles.subtitle}>Список друзей и заявок</Text>
+        <Text style={styles.subtitle}>Список друзей и заявок в друзья</Text>
       </View>
 
       <View style={styles.tabContainer}>
@@ -133,7 +171,9 @@ export default function FriendsScreen() {
             onPress={() => setActiveTab(key)}
             style={[styles.tab, activeTab === key && styles.activeTab]}
           >
-            <Text style={styles.tabText}>{label}</Text>
+            <Text style={[styles.tabText, activeTab === key && styles.activeTabText]}>
+              {label}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -145,41 +185,47 @@ export default function FriendsScreen() {
         {currentData.length ? (
           currentData.map((item) => (
             <View key={item.id} style={styles.card}>
-              <Text style={styles.name}>{item.displayName}</Text>
-              <Text style={styles.email}>{item.subtitle}</Text>
+              <TouchableOpacity
+                activeOpacity={0.82}
+                style={styles.cardContent}
+                onPress={() => openUserProfile(item.relatedUserId)}
+              >
+                <Text style={styles.name}>{item.displayName}</Text>
+                <Text style={styles.email}>{item.subtitle}</Text>
+              </TouchableOpacity>
 
-              {activeTab === "incoming" ? (
-                <TouchableOpacity
-                  style={[
-                    styles.acceptButton,
-                    processingRequestId === item.id && styles.acceptButtonDisabled,
-                  ]}
-                  onPress={() => handleAccept(item.id)}
-                  disabled={processingRequestId === item.id}
-                >
-                  <Text style={styles.acceptButtonText}>
-                    {processingRequestId === item.id ? "Обработка..." : "Принять"}
-                  </Text>
-                </TouchableOpacity>
-              ) : null}
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: actionConfig.color },
+                  processingRequestId === item.id && styles.actionButtonDisabled,
+                ]}
+                onPress={() => handleRequestAction(actionConfig.action, item)}
+                disabled={processingRequestId === item.id}
+              >
+                <Text style={styles.actionButtonText}>
+                  {processingRequestId === item.id ? "Обработка..." : actionConfig.label}
+                </Text>
+              </TouchableOpacity>
             </View>
           ))
         ) : (
           <Text style={styles.emptyText}>
-            У вас пока нет{" "}
-            {activeTab === "friends"
-              ? "друзей"
-              : activeTab === "incoming"
-              ? "входящих заявок"
-              : "исходящих заявок"}
-            .
+            {activeTab === "friends" && "У вас пока нет друзей."}
+            {activeTab === "incoming" && "У вас пока нет входящих заявок."}
+            {activeTab === "outgoing" && "У вас пока нет исходящих заявок."}
           </Text>
         )}
       </ScrollView>
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => Alert.alert("Недоступно", "Экран поиска друзей пока не добавлен.")}
+        onPress={() =>
+          Alert.alert(
+            "Недоступно",
+            "Экран поиска друзей пока не добавлен. Переход в чужие профили уже работает из текущих списков."
+          )
+        }
       >
         <Feather name="user-plus" size={28} color="#fff" />
       </TouchableOpacity>
@@ -190,7 +236,7 @@ export default function FriendsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1A1A1A",
+    backgroundColor: "#0F172A",
   },
   header: {
     paddingHorizontal: 20,
@@ -210,30 +256,40 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginBottom: 12,
+    paddingHorizontal: 16,
+    gap: 8,
   },
   tab: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    marginHorizontal: 5,
-    borderRadius: 20,
-    backgroundColor: "#333",
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 16,
+    backgroundColor: "#1E293B",
+    alignItems: "center",
   },
   activeTab: {
-    backgroundColor: "#6200EA",
+    backgroundColor: "#38BDF8",
   },
   tabText: {
-    color: "#fff",
-    fontSize: 16,
+    color: "#CBD5E1",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  activeTabText: {
+    color: "#0F172A",
   },
   scrollView: {
     paddingHorizontal: 20,
-    paddingBottom: 100,
+    paddingBottom: 110,
   },
   card: {
-    backgroundColor: "#3B2F2F",
+    backgroundColor: "#111827",
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     marginBottom: 12,
+    gap: 12,
+  },
+  cardContent: {
+    gap: 4,
   },
   name: {
     fontSize: 18,
@@ -242,35 +298,32 @@ const styles = StyleSheet.create({
   },
   email: {
     fontSize: 14,
-    color: "#bbb",
-    marginTop: 4,
+    color: "#94A3B8",
   },
-  emptyText: {
-    color: "#aaa",
-    textAlign: "center",
-    marginTop: 40,
-    fontSize: 16,
-  },
-  acceptButton: {
+  actionButton: {
     alignSelf: "flex-start",
-    marginTop: 12,
-    backgroundColor: "#16A34A",
-    borderRadius: 10,
+    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
-  acceptButtonDisabled: {
-    opacity: 0.6,
+  actionButtonDisabled: {
+    opacity: 0.65,
   },
-  acceptButtonText: {
+  actionButtonText: {
     color: "#fff",
     fontWeight: "700",
+  },
+  emptyText: {
+    color: "#94A3B8",
+    textAlign: "center",
+    marginTop: 40,
+    fontSize: 16,
   },
   fab: {
     position: "absolute",
     right: 20,
     bottom: 30,
-    backgroundColor: "#6200EA",
+    backgroundColor: "#2563EB",
     padding: 16,
     borderRadius: 50,
     elevation: 5,

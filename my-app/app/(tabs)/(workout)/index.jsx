@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -9,6 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
+import { getApiErrorMessage } from "../../../api/client";
 import WorkoutCard from "./workout_card";
 import ProgramCard from "./program_card";
 import { fetchUserPrograms, fetchUserWorkouts } from "../../../api/workout/fetchUserData";
@@ -36,7 +38,10 @@ const WorkoutScreen = () => {
       setWorkouts(userWorkouts);
       setPrograms(userPrograms);
     } catch (error) {
-      console.warn("Failed to load workouts data:", error);
+      Alert.alert(
+        "Ошибка",
+        getApiErrorMessage(error, "Не удалось загрузить тренировки и программы.")
+      );
     } finally {
       setRefreshing(false);
     }

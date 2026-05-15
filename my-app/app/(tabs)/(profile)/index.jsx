@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,14 +13,24 @@ import { useRouter } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
 
 import { delete_account } from "../../../api/auth/delete_account";
+import { getApiErrorMessage } from "../../../api/client";
+import { fetchSocialPersonalization } from "../../../api/social/fetchSocialPersonalization";
 import { delete_user_profile } from "../../../api/user/delete_user_profile";
 import { get_user_profile } from "../../../api/user/get_user_profile";
+import { fetchPersonalizationProfile } from "../../../api/workout/fetchPersonalization";
+import AchievementsPreview from "../../../components/profile/AchievementsPreview";
+import PersonalRecordsCard from "../../../components/profile/PersonalRecordsCard";
+import UserProfileCard from "../../../components/profile/UserProfileCard";
+import WellnessInsightsCard from "../../../components/profile/WellnessInsightsCard";
 import { useSession } from "../../../context/ctx";
 import { useUserId } from "../../../hooks/useUserId";
+import { combineAchievements, summarizeAchievements } from "../../../utils/personalization";
 
 const MENU_ITEMS = [
   { key: "edit", title: "Изменить профиль", route: "/(tabs)/(profile)/edit" },
   { key: "password", title: "Изменить пароль", route: "/(tabs)/(profile)/password" },
+  { key: "achievements", title: "Все достижения", route: "/(tabs)/(profile)/achievements" },
+  { key: "notifications", title: "Открыть уведомления", route: "/(tabs)/notifications" },
   { key: "friends", title: "Открыть друзей", route: "/(tabs)/(friends)" },
 ];
 
@@ -30,6 +40,8 @@ export default function ProfileScreen() {
   const { signOut } = useSession();
   const [userId, setUserId, isLoaded] = useUserId();
   const [user, setUser] = useState(null);
+  const [personalization, setPersonalization] = useState(null);
+  const [socialPersonalization, setSocialPersonalization] = useState(null);
   const [isFetching, setIsFetching] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -50,14 +62,23 @@ export default function ProfileScreen() {
 
       setIsFetching(true);
       try {
-        const profile = await get_user_profile(userId);
+        const [profile, personalizationData, socialData] = await Promise.all([
+          get_user_profile(userId),
+          fetchPersonalizationProfile(userId),
+          fetchSocialPersonalization(userId),
+        ]);
+
         if (isMounted) {
           setUser(profile);
+          setPersonalization(personalizationData);
+          setSocialPersonalization(socialData);
         }
       } catch (error) {
-        console.warn("Не удалось загрузить профиль:", error);
         if (isMounted) {
-          Alert.alert("Ошибка", "Не удалось загрузить профиль.");
+          Alert.alert(
+            "Ошибка",
+            getApiErrorMessage(error, "Не удалось загрузить профиль.")
+          );
         }
       } finally {
         if (isMounted) {
@@ -71,7 +92,15 @@ export default function ProfileScreen() {
     return () => {
       isMounted = false;
     };
-  }, [isFocused, isLoaded, userId]);
+  }, [isFocused, isLoaded, router, setUserId, signOut, userId]);
+
+  const achievementSummary = useMemo(
+    () =>
+      summarizeAchievements(
+        combineAchievements(personalization?.achievements, socialPersonalization?.achievements)
+      ),
+    [personalization?.achievements, socialPersonalization?.achievements]
+  );
 
   const navigateToRegistration = async () => {
     signOut();
@@ -87,7 +116,7 @@ export default function ProfileScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert("Удаление аккаунта", "Аккаунт будет удален без возможности восстановления.", [
+    Alert.alert("Удаление аккаунта", "Аккаунт будет удалён без возможности восстановления.", [
       { text: "Отмена", style: "cancel" },
       {
         text: "Удалить",
@@ -103,8 +132,10 @@ export default function ProfileScreen() {
             await delete_account(userId);
             await navigateToRegistration();
           } catch (error) {
-            console.warn("Не удалось удалить аккаунт:", error);
-            Alert.alert("Ошибка", "Не удалось удалить аккаунт.");
+            Alert.alert(
+              "Ошибка",
+              getApiErrorMessage(error, "Не удалось удалить аккаунт.")
+            );
           } finally {
             setIsDeleting(false);
           }
@@ -124,14 +155,30 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.headerCard}>
-          <Text style={styles.name}>
-            {user?.firstName} {user?.lastName}
-          </Text>
-          <Text style={styles.email}>{user?.email ?? "Email не указан"}</Text>
-          <Text style={styles.meta}>Вес: {user?.bodyWeight ?? 0} кг</Text>
-          <Text style={styles.bio}>{user?.bio || "Добавьте описание о себе."}</Text>
-        </View>
+        <UserProfileCard user={user} fallbackId={userId} />
+
+        <WellnessInsightsCard
+          fitnessGoal={user?.fitnessGoal}
+          recoveryScore={personalization?.recoveryScore}
+          recoveryStatus={personalization?.recoveryStatus}
+          muscleBalance={personalization?.muscleBalance ?? []}
+        />
+
+        {personalization?.profileMessage ? (
+          <View style={styles.insightCard}>
+            <Text style={styles.insightLabel}>Персональная сводка</Text>
+            <Text style={styles.insightText}>{personalization.profileMessage}</Text>
+          </View>
+        ) : null}
+
+        <AchievementsPreview
+          achievements={achievementSummary.achievements}
+          unlockedCount={achievementSummary.unlockedCount}
+          totalCount={achievementSummary.totalCount}
+          onPressAll={() => router.push("/(tabs)/(profile)/achievements")}
+        />
+
+        <PersonalRecordsCard records={personalization?.personalRecords ?? []} />
 
         <View style={styles.menuCard}>
           {MENU_ITEMS.map((item) => (
@@ -178,36 +225,23 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 16,
   },
-  headerCard: {
-    backgroundColor: "#FFFFFF",
+  insightCard: {
+    backgroundColor: "#111827",
     borderRadius: 20,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 3,
+    padding: 18,
   },
-  name: {
-    fontSize: 26,
+  insightLabel: {
+    color: "#93C5FD",
+    fontSize: 13,
     fontWeight: "700",
-    color: "#111827",
-    marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
   },
-  email: {
-    fontSize: 16,
-    color: "#4B5563",
-    marginBottom: 10,
-  },
-  meta: {
-    fontSize: 15,
-    color: "#1D4ED8",
-    marginBottom: 12,
-  },
-  bio: {
+  insightText: {
+    color: "#F8FAFC",
     fontSize: 15,
     lineHeight: 22,
-    color: "#374151",
+    marginTop: 10,
   },
   menuCard: {
     backgroundColor: "#FFFFFF",

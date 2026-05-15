@@ -1,6 +1,7 @@
 package ru.alafonin4.workoutservice.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import ru.alafonin4.workoutservice.service.WorkoutProgressService;
 import ru.alafonin4.workoutservice.service.WorkoutService;
 
 import java.util.List;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/workouts")
@@ -32,7 +34,7 @@ public class WorkoutController {
     @PostMapping({"", "/"})
     public ResponseEntity<Workout> createWorkout(@RequestBody Workout workout) {
         Workout createdWorkout = workoutService.createWorkout(workout);
-        return ResponseEntity.ok(createdWorkout);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdWorkout);
     }
 
     @GetMapping("/{id}")
@@ -49,12 +51,8 @@ public class WorkoutController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Workout> updateWorkout(@PathVariable("id") Long id, @RequestBody Workout workout) {
-        try {
-            Workout updatedWorkout = workoutService.updateWorkout(id, workout);
-            return ResponseEntity.ok(updatedWorkout);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        Workout updatedWorkout = workoutService.updateWorkout(id, workout);
+        return ResponseEntity.ok(updatedWorkout);
     }
 
     @DeleteMapping("/{id}")
@@ -69,6 +67,15 @@ public class WorkoutController {
             @RequestParam(defaultValue = "1") int months
     ) {
         return ResponseEntity.ok(workoutProgressService.getUserProgress(userId, months));
+    }
+
+    @GetMapping("/progress/user/{userId}/range")
+    public ResponseEntity<WorkoutProgressResponse> getUserProgressByRange(
+            @PathVariable("userId") Long userId,
+            @RequestParam LocalDate fromDate,
+            @RequestParam LocalDate toDate
+    ) {
+        return ResponseEntity.ok(workoutProgressService.getUserProgressByRange(userId, fromDate, toDate));
     }
 
     @GetMapping("/progress/user/{userId}/exercise/{exerciseId}")

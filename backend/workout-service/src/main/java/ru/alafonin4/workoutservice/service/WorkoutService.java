@@ -1,8 +1,10 @@
 package ru.alafonin4.workoutservice.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import ru.alafonin4.workoutservice.model.ExerciseSet;
 import ru.alafonin4.workoutservice.model.Workout;
 import ru.alafonin4.workoutservice.model.WorkoutExercise;
@@ -30,7 +32,7 @@ public class WorkoutService {
     @Transactional(readOnly = true)
     public Workout getWorkoutById(Long id) {
         Workout workout = workoutRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Workout not found with id " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Workout not found with id " + id));
         initializeWorkout(workout);
         return workout;
     }
@@ -53,10 +55,13 @@ public class WorkoutService {
             }
             normalizeWorkout(existingWorkout);
             return workoutRepository.save(existingWorkout);
-        }).orElseThrow(() -> new RuntimeException("Workout not found with id " + id));
+        }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Workout not found with id " + id));
     }
 
     public void deleteWorkout(Long id) {
+        if (!workoutRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Workout not found with id " + id);
+        }
         workoutRepository.deleteById(id);
     }
 
@@ -82,12 +87,13 @@ public class WorkoutService {
 
             if (workoutExercise.getExercise() == null ||
                     workoutExercise.getExercise().getId() == null) {
-                throw new RuntimeException("Exercise id must be provided");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exercise id must be provided");
             }
 
             workoutExercise.setExercise(
                     exerciseRepository.findById(workoutExercise.getExercise().getId())
-                            .orElseThrow(() -> new RuntimeException(
+                            .orElseThrow(() -> new ResponseStatusException(
+                                    HttpStatus.NOT_FOUND,
                                     "Exercise not found with id " + workoutExercise.getExercise().getId()
                             ))
             );

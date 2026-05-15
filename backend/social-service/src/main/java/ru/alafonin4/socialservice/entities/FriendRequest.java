@@ -26,6 +26,7 @@ public class FriendRequest {
     @Enumerated(EnumType.STRING)
     private FriendRequestStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime respondedAt;
 
     public Long getSenderId() {
         return senderId;
@@ -57,5 +58,13 @@ public class FriendRequest {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getRespondedAt() {
+        return respondedAt;
+    }
+
+    public void setRespondedAt(LocalDateTime respondedAt) {
+        this.respondedAt = respondedAt;
     }
 }

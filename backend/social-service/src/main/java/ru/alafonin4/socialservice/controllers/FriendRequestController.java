@@ -3,6 +3,7 @@ package ru.alafonin4.socialservice.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.alafonin4.socialservice.dto.FriendRelationshipResponse;
 import ru.alafonin4.socialservice.dto.FriendRequestDTO;
 import ru.alafonin4.socialservice.entities.FriendRequest;
 import ru.alafonin4.socialservice.services.FriendRequestService;
@@ -32,6 +33,32 @@ public class FriendRequestController {
     public ResponseEntity<FriendRequest> rejectFriendRequest(@PathVariable("id") Long requestId) {
         FriendRequest rejectedRequest = friendRequestService.rejectFriendRequest(requestId);
         return ResponseEntity.ok(rejectedRequest);
+    }
+
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<FriendRequest> cancelFriendRequest(
+            @PathVariable("id") Long requestId,
+            @RequestParam("currentUserId") Long currentUserId
+    ) {
+        FriendRequest canceledRequest = friendRequestService.cancelFriendRequest(requestId, currentUserId);
+        return ResponseEntity.ok(canceledRequest);
+    }
+
+    @PutMapping("/{id}/remove")
+    public ResponseEntity<FriendRequest> removeFriend(
+            @PathVariable("id") Long requestId,
+            @RequestParam("currentUserId") Long currentUserId
+    ) {
+        FriendRequest updatedRequest = friendRequestService.removeFriend(requestId, currentUserId);
+        return ResponseEntity.ok(updatedRequest);
+    }
+
+    @GetMapping("/relationship/{userId}/{otherUserId}")
+    public ResponseEntity<FriendRelationshipResponse> getRelationship(
+            @PathVariable("userId") Long userId,
+            @PathVariable("otherUserId") Long otherUserId
+    ) {
+        return ResponseEntity.ok(friendRequestService.getRelationship(userId, otherUserId));
     }
 
     @GetMapping("/received/{receiverId}")

@@ -1,8 +1,10 @@
 package ru.alafonin4.workoutservice.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import ru.alafonin4.workoutservice.model.TrainingDay;
 import ru.alafonin4.workoutservice.model.TrainingDayExercise;
 import ru.alafonin4.workoutservice.model.TrainingProgram;
@@ -25,7 +27,7 @@ public class TrainingProgramService {
     @Transactional(readOnly = true)
     public TrainingProgram getProgramById(Long id) {
         TrainingProgram program = trainingProgramRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Training program not found with id " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Training program not found with id " + id));
         initializeProgram(program);
         return program;
     }
@@ -48,10 +50,13 @@ public class TrainingProgramService {
             }
             normalizeProgram(existingProgram);
             return trainingProgramRepository.save(existingProgram);
-        }).orElseThrow(() -> new RuntimeException("Training program not found with id " + id));
+        }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Training program not found with id " + id));
     }
 
     public void deleteProgram(Long id) {
+        if (!trainingProgramRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Training program not found with id " + id);
+        }
         trainingProgramRepository.deleteById(id);
     }
 

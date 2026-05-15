@@ -1,16 +1,16 @@
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Formik } from "formik";
 import { Link, router } from "expo-router";
-import { globalStyles } from "../../styles/globalStyles";
-import { authorizationValidationSchema } from "../../validation/authorizationValidation";
+import { useState } from "react";
+
+import { login } from "../../api/auth/login";
+import { getApiErrorMessage, getApiErrorStatus } from "../../api/client";
 import { FormField } from "../../components/FormField";
 import { useSession } from "../../context/ctx";
-import { login } from "../../api/auth/login";
-import { useState } from "react";
 import { useUserId } from "../../hooks/useUserId";
-import { useStorageState } from "./../../hooks/useStorageState";
-
+import { globalStyles } from "../../styles/globalStyles";
+import { authorizationValidationSchema } from "../../validation/authorizationValidation";
 
 const isFormValid = (isValid, touched) => {
   return isValid && Object.keys(touched).length !== 0;
@@ -19,30 +19,28 @@ const isFormValid = (isValid, touched) => {
 const Index = () => {
   const { signIn } = useSession();
   const [, setUserId] = useUserId();
-  const [loginError, setLoginError] = useState(null); 
+  const [loginError, setLoginError] = useState(null);
 
   const onSignInHandler = async (email, password) => {
     try {
-      setLoginError(null);  
+      setLoginError(null);
       const data = await login(email, password);
-      console.log(data);
-      if (!data || !data.id) {
-        throw new Error("Не удалось получить ID из ответа.");
-      }
-      console.log("user от user-сервиса:", data);
-      await setUserId(data.id);
 
+      if (!data || !data.id) {
+        throw new Error("Не удалось получить ID пользователя из ответа сервера.");
+      }
+
+      await setUserId(data.id);
       signIn("Student");
       router.push("/(tabs)/(profile)");
     } catch (error) {
-      console.error("Login failed:", error);
+      const status = getApiErrorStatus(error);
+      const fallback =
+        status === 401 || status === 404
+          ? "Неправильный email или пароль."
+          : "Не удалось войти. Попробуйте позже.";
 
-      console.log(error.response?.status)
-      if (error.response?.status === 404) {
-        setLoginError("Неправильный email или пароль."); 
-      } else {
-        setLoginError("Ошибка сервера. Попробуйте позже.");
-      }
+      setLoginError(getApiErrorMessage(error, fallback));
     }
   };
 
@@ -71,7 +69,7 @@ const Index = () => {
             <>
               <FormField
                 field="email"
-                label="Электронная почта"
+                label="Email"
                 values={values}
                 touched={touched}
                 errors={errors}
@@ -82,7 +80,7 @@ const Index = () => {
               <FormField
                 field="password"
                 label="Пароль"
-                secureTextEntry={true}
+                secureTextEntry
                 values={values}
                 touched={touched}
                 errors={errors}
@@ -90,22 +88,24 @@ const Index = () => {
                 handleBlur={handleBlur}
               />
 
-              {loginError && <Text style={styles.errorText}>{loginError}</Text>}
+              {loginError ? <Text style={styles.errorText}>{loginError}</Text> : null}
 
               <TouchableOpacity onPress={handleSubmit}>
                 <View
                   style={[
                     globalStyles.signInButton,
-                    { opacity: isFormValid(isValid, touched) ? 1 : 0.4 }
+                    { opacity: isFormValid(isValid, touched) ? 1 : 0.4 },
                   ]}
                 >
-                  <Text style={globalStyles.buttonText}>Войти</Text>
+                  <Text style={globalStyles.buttonText}>Вход</Text>
                 </View>
               </TouchableOpacity>
 
               <View style={styles.linkContainer}>
                 <Text style={styles.footerText}>Нет аккаунта?</Text>
-                <Link href={"/sign_up"} style={styles.link}>Регистрация</Link>
+                <Link href="/sign_up" style={styles.link}>
+                  Зарегистрироваться
+                </Link>
               </View>
             </>
           )}
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     flexDirection: "row",
-    marginTop: 10
+    marginTop: 10,
   },
   link: {
     color: "#d903e4",
@@ -138,8 +138,8 @@ const styles = StyleSheet.create({
   footerText: {
     fontFamily: "os-regular",
     marginRight: 5,
-    fontSize: 14
-  }
+    fontSize: 14,
+  },
 });
 
 export default Index;

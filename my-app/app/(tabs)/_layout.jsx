@@ -15,6 +15,7 @@ export default function TabsLayout() {
           else if (route.name === "(friends)") iconName = "people";
           else if (route.name === "(workout)") iconName = "barbell";
           else if (route.name === "(exercises)") iconName = "fitness";
+          else if (route.name === "notifications") iconName = "notifications";
           else if (route.name === "(profile)") iconName = "person";
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -25,6 +26,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="(friends)" options={{ title: "Друзья" }} />
       <Tabs.Screen name="(workout)" options={{ title: "Тренировки" }} />
       <Tabs.Screen name="(exercises)" options={{ title: "Упражнения" }} />
+      <Tabs.Screen name="notifications" options={{ title: "Уведомления" }} />
       <Tabs.Screen name="(profile)" options={{ title: "Профиль" }} />
       <Tabs.Screen name="explore" options={{ href: null }} />
     </Tabs>

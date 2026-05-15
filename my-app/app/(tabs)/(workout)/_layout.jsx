@@ -6,6 +6,7 @@ export default function WorkoutLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="create-workout" options={{ title: "Новая тренировка" }} />
       <Stack.Screen name="create-program" options={{ title: "Новая программа" }} />
+      <Stack.Screen name="edit-program" options={{ title: "Редактирование программы" }} />
       <Stack.Screen name="progress" options={{ headerShown: false }} />
       <Stack.Screen name="workout-details" options={{ title: "Тренировка" }} />
       <Stack.Screen name="program-details" options={{ title: "Программа" }} />

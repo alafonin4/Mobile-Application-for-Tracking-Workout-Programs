@@ -19,7 +19,11 @@ public class UserRequest {
 
     private Double bodyWeight;
 
+    private String fitnessGoal;
+
     private String email;
+
+    private String avatarUrl;
 
     public String getFirstName() {
         return firstName;
@@ -53,6 +57,14 @@ public class UserRequest {
         this.bodyWeight = bodyWeight;
     }
 
+    public String getFitnessGoal() {
+        return fitnessGoal;
+    }
+
+    public void setFitnessGoal(String fitnessGoal) {
+        this.fitnessGoal = fitnessGoal;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -67,5 +79,13 @@ public class UserRequest {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }

@@ -26,6 +26,8 @@ public class Exercise {
     @Column(length = 1000)
     private String description;
 
+    private Boolean requiresAdditionalWeight = Boolean.FALSE;
+
     public Long getId() {
         return id;
     }
@@ -64,5 +66,13 @@ public class Exercise {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Boolean getRequiresAdditionalWeight() {
+        return requiresAdditionalWeight;
+    }
+
+    public void setRequiresAdditionalWeight(Boolean requiresAdditionalWeight) {
+        this.requiresAdditionalWeight = requiresAdditionalWeight;
     }
 }
