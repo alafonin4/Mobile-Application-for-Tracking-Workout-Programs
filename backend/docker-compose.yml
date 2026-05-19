@@ -1,0 +1,220 @@
+services:
+  discovery-server:
+    build:
+      context: .
+      dockerfile: discovery-server/Dockerfile
+    container_name: discovery-server
+    environment:
+      SERVER_PORT: 8761
+      EUREKA_INSTANCE_HOSTNAME: discovery-server
+    ports:
+      - "8761:8761"
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD:-post18lib}
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  user-db:
+    image: postgres:16-alpine
+    container_name: user-db
+    environment:
+      POSTGRES_DB: users
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD:-post18lib}
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d users"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  social-db:
+    image: postgres:16-alpine
+    container_name: social-db
+    environment:
+      POSTGRES_DB: social
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${SOCIAL_DB_PASSWORD:-post18lib}
+    volumes:
+      - social-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d social"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  workout-db:
+    image: postgres:16-alpine
+    container_name: workout-db
+    environment:
+      POSTGRES_DB: workout
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${WORKOUT_DB_PASSWORD:-post18lib}
+    volumes:
+      - workout-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d workout"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    container_name: auth-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      auth-db:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/auth
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD:-post18lib}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL:-false}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
+    ports:
+      - "8082:8082"
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    container_name: user-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      user-db:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8084
+      SPRING_DATASOURCE_URL: jdbc:postgresql://user-db:5432/users
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD:-post18lib}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL:-false}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
+    ports:
+      - "8084:8084"
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  social-service:
+    build:
+      context: .
+      dockerfile: social-service/Dockerfile
+    container_name: social-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      social-db:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8085
+      SPRING_DATASOURCE_URL: jdbc:postgresql://social-db:5432/social
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${SOCIAL_DB_PASSWORD:-post18lib}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL:-false}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
+    ports:
+      - "8085:8085"
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  workout-service:
+    build:
+      context: .
+      dockerfile: workout-service/Dockerfile
+    container_name: workout-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      workout-db:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8086
+      SPRING_DATASOURCE_URL: jdbc:postgresql://workout-db:5432/workout
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${WORKOUT_DB_PASSWORD:-post18lib}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL:-false}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
+    ports:
+      - "8086:8086"
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: api-gateway
+    depends_on:
+      discovery-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      social-service:
+        condition: service_started
+      workout-service:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8083
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
+      LOGGING_LEVEL_ROOT: ${LOGGING_LEVEL_ROOT:-INFO}
+      LOGGING_LEVEL_GATEWAY: ${LOGGING_LEVEL_GATEWAY:-INFO}
+      LOGGING_LEVEL_GATEWAY_ROUTES: ${LOGGING_LEVEL_GATEWAY_ROUTES:-INFO}
+    ports:
+      - "8083:8083"
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge
+
+volumes:
+  auth-db-data:
+  user-db-data:
+  social-db-data:
+  workout-db-data:

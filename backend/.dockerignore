@@ -1,0 +1,9 @@
+.git
+.gitignore
+.idea
+**/.idea
+**/target
+**/node_modules
+**/.DS_Store
+**/src/test
+README.md
