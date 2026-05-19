@@ -18,19 +18,39 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Returns the user by id.
+     * @param id identifier of the target record
+     * @return result of the operation
+     */
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id);
     }
 
+    /**
+     * Returns the required user by id.
+     * @param id identifier of the target record
+     * @return result of the operation
+     */
     public User getRequiredUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id " + id));
     }
 
+    /**
+     * Returns the all users.
+     * @return prepared list with the requested data
+     */
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
+    /**
+     * Updates the user.
+     * @param id identifier of the target record
+     * @param updatedUser updated user
+     * @return result of the operation
+     */
     public User updateUser(Long id, User updatedUser) {
         return userRepository.findById(id).map(user -> {
             user.setFirstName(updatedUser.getFirstName());
@@ -44,6 +64,10 @@ public class UserService {
         }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id " + id));
     }
 
+    /**
+     * Deletes the user.
+     * @param id identifier of the target record
+     */
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id " + id);
@@ -52,6 +76,11 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+    /**
+     * Creates a new user.
+     * @param user user being processed
+     * @return result of the operation
+     */
     public User createUser(UserRequest user) {
         if (user.getId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User id is required.");

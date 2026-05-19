@@ -8,6 +8,10 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class RestClientConfig {
 
+    /**
+     * Creates the RestTemplate bean used for service-to-service communication.
+     * @return result of the operation
+     */
     @Bean
     @LoadBalanced
     public RestTemplate restTemplate() {

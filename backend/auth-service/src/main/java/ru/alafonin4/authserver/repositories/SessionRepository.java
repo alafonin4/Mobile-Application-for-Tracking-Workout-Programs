@@ -5,5 +5,10 @@ import org.springframework.stereotype.Repository;
 import ru.alafonin4.authserver.entities.Session;
 @Repository
 public interface SessionRepository extends JpaRepository<Session, Long> {
+    /**
+     * Deletes all persisted sessions that belong to the specified user.
+     *
+     * @param userId identifier of the user whose sessions should be removed
+     */
     void deleteByUserId(Long userId);
 }

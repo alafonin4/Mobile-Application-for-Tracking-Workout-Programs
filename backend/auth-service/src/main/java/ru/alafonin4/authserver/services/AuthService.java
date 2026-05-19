@@ -34,6 +34,11 @@ public class AuthService {
     @Autowired
     private SessionRepository sessionRepository;
 
+    /**
+     * Registers a new user and returns authentication data.
+     * @param request request payload
+     * @return result of the operation
+     */
     public AuthResponse register(RegisterRequest request) {
 
         if (!repository.findByEmail(request.getEmail()).isEmpty()) {
@@ -59,6 +64,11 @@ public class AuthService {
         return authResponse;
     }
 
+    /**
+     * Authenticates a user and returns authentication data.
+     * @param request request payload
+     * @return result of the operation
+     */
     public AuthResponse login(LoginRequest request) {
         var user = repository.findByEmail(request.getEmail());
         if (user.isEmpty()){
@@ -81,6 +91,11 @@ public class AuthService {
         return authResponse;
     }
 
+    /**
+     * Changes the password for the specified user.
+     * @param userId identifier of the user
+     * @param request request payload
+     */
     public void changePassword(Long userId, ChangePasswordRequest request) {
         User user = repository.findById(userId)
                 .orElseThrow(() -> new NotFoundEmailException("User not found."));
@@ -93,6 +108,10 @@ public class AuthService {
         repository.save(user);
     }
 
+    /**
+     * Deletes the account.
+     * @param userId identifier of the user
+     */
     public void deleteAccount(Long userId) {
         if (!repository.existsById(userId)) {
             throw new NotFoundEmailException("User not found.");

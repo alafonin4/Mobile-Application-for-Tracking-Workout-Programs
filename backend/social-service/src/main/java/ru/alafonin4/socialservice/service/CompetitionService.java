@@ -60,6 +60,12 @@ public class CompetitionService {
     @Autowired
     private RestTemplate restTemplate;
 
+    /**
+     * Returns the global leaderboard.
+     * @param currentUserId the identifier of the current user
+     * @param months amount of months included in the analysis
+     * @return result of the operation
+     */
     public CompetitionLeaderboardResponse getGlobalLeaderboard(Long currentUserId, int months) {
         LocalDate monthStart = YearMonth.now().atDay(1);
         LocalDate nextMonthStart = monthStart.plusMonths(1);
@@ -87,6 +93,12 @@ public class CompetitionService {
         return response;
     }
 
+    /**
+     * Returns the friends leaderboard.
+     * @param currentUserId the identifier of the current user
+     * @param months amount of months included in the analysis
+     * @return result of the operation
+     */
     public CompetitionLeaderboardResponse getFriendsLeaderboard(Long currentUserId, int months) {
         LocalDate monthStart = YearMonth.now().atDay(1);
         LocalDate nextMonthStart = monthStart.plusMonths(1);
@@ -117,6 +129,11 @@ public class CompetitionService {
         return response;
     }
 
+    /**
+     * Returns the user competitions.
+     * @param userId identifier of the user
+     * @return prepared list with the requested data
+     */
     public List<CompetitionOverviewDto> getUserCompetitions(Long userId) {
         Map<Long, RemoteUserDto> userMap = fetchAllUsers().stream()
                 .collect(Collectors.toMap(RemoteUserDto::getId, user -> user, (left, right) -> left));
@@ -128,6 +145,11 @@ public class CompetitionService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Creates a new competition.
+     * @param request request payload
+     * @return result of the operation
+     */
     public Competition createCompetition(CompetitionCreateRequest request) {
         validateCreateRequest(request);
 
@@ -162,6 +184,12 @@ public class CompetitionService {
         return competitionRepository.save(competition);
     }
 
+    /**
+     * Returns the competition leaderboard.
+     * @param competitionId identifier of the competition
+     * @param currentUserId the identifier of the current user
+     * @return result of the operation
+     */
     public CompetitionLeaderboardResponse getCompetitionLeaderboard(Long competitionId, Long currentUserId) {
         Competition competition = getCompetitionOrThrow(competitionId);
         List<CompetitionParticipant> acceptedParticipants = competition.getParticipants().stream()
@@ -191,6 +219,12 @@ public class CompetitionService {
         );
     }
 
+    /**
+     * AcceptInvitation.
+     * @param competitionId identifier of the competition
+     * @param userId identifier of the user
+     * @return result of the operation
+     */
     public Competition acceptInvitation(Long competitionId, Long userId) {
         CompetitionParticipant participant = getParticipantOrThrow(competitionId, userId);
         participant.setStatus(CompetitionParticipantStatus.ACCEPTED);
@@ -199,6 +233,12 @@ public class CompetitionService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Competition not found with id " + competitionId));
     }
 
+    /**
+     * DeclineInvitation.
+     * @param competitionId identifier of the competition
+     * @param userId identifier of the user
+     * @return result of the operation
+     */
     public Competition declineInvitation(Long competitionId, Long userId) {
         CompetitionParticipant participant = getParticipantOrThrow(competitionId, userId);
         participant.setStatus(CompetitionParticipantStatus.DECLINED);
@@ -207,16 +247,34 @@ public class CompetitionService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Competition not found with id " + competitionId));
     }
 
+    /**
+     * Returns the participant or throws an exception when it cannot be found.
+     * @param competitionId identifier of the competition
+     * @param userId identifier of the user
+     * @return result of the operation
+     */
     private CompetitionParticipant getParticipantOrThrow(Long competitionId, Long userId) {
         return competitionParticipantRepository.findByCompetitionIdAndUserId(competitionId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Competition participant not found."));
     }
 
+    /**
+     * Returns the competition or throws an exception when it cannot be found.
+     * @param competitionId identifier of the competition
+     * @return result of the operation
+     */
     private Competition getCompetitionOrThrow(Long competitionId) {
         return competitionRepository.findDetailedById(competitionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Competition not found with id " + competitionId));
     }
 
+    /**
+     * ToOverview.
+     * @param competition competition
+     * @param currentUserId the identifier of the current user
+     * @param userMap user map
+     * @return result of the operation
+     */
     private CompetitionOverviewDto toOverview(Competition competition, Long currentUserId, Map<Long, RemoteUserDto> userMap) {
         CompetitionOverviewDto dto = new CompetitionOverviewDto();
         dto.setId(competition.getId());
@@ -255,6 +313,14 @@ public class CompetitionService {
         return dto;
     }
 
+    /**
+     * Builds the monthly progress leaderboard entry.
+     * @param user user being processed
+     * @param currentUserId the identifier of the current user
+     * @param fromDate start date of the requested period
+     * @param toDateExclusive to date exclusive
+     * @return result of the operation
+     */
     private CompetitionLeaderboardEntryDto buildMonthlyProgressLeaderboardEntry(
             RemoteUserDto user,
             Long currentUserId,
@@ -275,6 +341,14 @@ public class CompetitionService {
         return entry;
     }
 
+    /**
+     * Builds the competition entry.
+     * @param competition competition
+     * @param userId identifier of the user
+     * @param currentUserId the identifier of the current user
+     * @param userMap user map
+     * @return result of the operation
+     */
     private CompetitionLeaderboardEntryDto buildCompetitionEntry(
             Competition competition,
             Long userId,
@@ -298,6 +372,19 @@ public class CompetitionService {
         return entry;
     }
 
+    /**
+     * Builds the leaderboard response.
+     * @param scope scope
+     * @param title human-readable title
+     * @param description human-readable description
+     * @param goalType goal type
+     * @param goalLabel goal label
+     * @param metricLabel metric label
+     * @param competitionId identifier of the competition
+     * @param entries entries
+     * @param currentUserId the identifier of the current user
+     * @return result of the operation
+     */
     private CompetitionLeaderboardResponse buildLeaderboardResponse(
             String scope,
             String title,
@@ -334,6 +421,12 @@ public class CompetitionService {
         return response;
     }
 
+    /**
+     * EvaluateCompetition.
+     * @param competition competition
+     * @param userId identifier of the user
+     * @return result of the operation
+     */
     public CompetitionMetricSnapshot evaluateCompetition(Competition competition, Long userId) {
         int periodMonths = normalizePeriodMonths(competition.getPeriodMonths());
 
@@ -383,6 +476,12 @@ public class CompetitionService {
         );
     }
 
+    /**
+     * FilterWorkoutsByPeriod.
+     * @param workouts workouts to analyze
+     * @param periodMonths period months
+     * @return prepared list with the requested data
+     */
     private List<RemoteWorkoutDto> filterWorkoutsByPeriod(List<RemoteWorkoutDto> workouts, int periodMonths) {
         LocalDateTime fromDate = LocalDateTime.now().minusMonths(periodMonths);
         return workouts.stream()
@@ -390,6 +489,11 @@ public class CompetitionService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Builds the goal label.
+     * @param competition competition
+     * @return resulting text value
+     */
     private String buildGoalLabel(Competition competition) {
         double targetValue = competition.getTargetValue() == null ? 0 : competition.getTargetValue();
         return switch (competition.getGoalType()) {
@@ -404,6 +508,11 @@ public class CompetitionService {
         };
     }
 
+    /**
+     * Builds the metric label.
+     * @param goalType goal type
+     * @return resulting text value
+     */
     private String buildMetricLabel(CompetitionGoalType goalType) {
         return switch (goalType) {
             case PROGRESS_SCORE -> "Баллы прогресса";
@@ -412,6 +521,10 @@ public class CompetitionService {
         };
     }
 
+    /**
+     * ValidateCreateRequest.
+     * @param request request payload
+     */
     private void validateCreateRequest(CompetitionCreateRequest request) {
         if (request.getCreatorId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Competition creator id is required.");
@@ -430,6 +543,13 @@ public class CompetitionService {
         }
     }
 
+    /**
+     * AddParticipant.
+     * @param competition competition
+     * @param userId identifier of the user
+     * @param status status
+     * @param invitedAt invited at
+     */
     private void addParticipant(
             Competition competition,
             Long userId,
@@ -447,6 +567,11 @@ public class CompetitionService {
         competition.getParticipants().add(participant);
     }
 
+    /**
+     * Normalizes the period months.
+     * @param periodMonths period months
+     * @return calculated numeric value
+     */
     private int normalizePeriodMonths(Integer periodMonths) {
         if (periodMonths == null || periodMonths <= 0) {
             return DEFAULT_PERIOD_MONTHS;
@@ -454,6 +579,11 @@ public class CompetitionService {
         return periodMonths;
     }
 
+    /**
+     * Returns the accepted friend ids.
+     * @param userId identifier of the user
+     * @return result of the operation
+     */
     private Set<Long> getAcceptedFriendIds(Long userId) {
         List<FriendRequest> approved = friendRequestRepository.findBySenderIdOrReceiverIdAndStatus(
                 userId,
@@ -472,11 +602,21 @@ public class CompetitionService {
         return ids;
     }
 
+    /**
+     * Loads all users required to enrich social responses.
+     * @return prepared list with the requested data
+     */
     private List<RemoteUserDto> fetchAllUsers() {
         RemoteUserDto[] response = restTemplate.getForObject("http://user-service/api/users", RemoteUserDto[].class);
         return response == null ? List.of() : Arrays.asList(response);
     }
 
+    /**
+     * FetchUserProgress.
+     * @param userId identifier of the user
+     * @param months amount of months included in the analysis
+     * @return result of the operation
+     */
     private RemoteWorkoutProgressResponse fetchUserProgress(Long userId, int months) {
         String url = "http://workout-service/api/workouts/progress/user/" + userId + "?months=" + months;
         RemoteWorkoutProgressResponse response = restTemplate.getForObject(url, RemoteWorkoutProgressResponse.class);
@@ -490,6 +630,13 @@ public class CompetitionService {
         return response;
     }
 
+    /**
+     * FetchUserProgressInRange.
+     * @param userId identifier of the user
+     * @param fromDate start date of the requested period
+     * @param toDateExclusive to date exclusive
+     * @return result of the operation
+     */
     private RemoteWorkoutProgressResponse fetchUserProgressInRange(Long userId, LocalDate fromDate, LocalDate toDateExclusive) {
         String url = "http://workout-service/api/workouts/progress/user/" + userId
                 + "/range?fromDate=" + fromDate + "&toDate=" + toDateExclusive;
@@ -504,6 +651,11 @@ public class CompetitionService {
         return response;
     }
 
+    /**
+     * FetchUserWorkouts.
+     * @param userId identifier of the user
+     * @return prepared list with the requested data
+     */
     private List<RemoteWorkoutDto> fetchUserWorkouts(Long userId) {
         RemoteWorkoutDto[] response = restTemplate.getForObject(
                 "http://workout-service/api/workouts/user/" + userId,
@@ -512,6 +664,12 @@ public class CompetitionService {
         return response == null ? List.of() : Arrays.asList(response);
     }
 
+    /**
+     * Builds a user-facing name with a safe fallback.
+     * @param user user being processed
+     * @param fallbackUserId the identifier of the fallback user
+     * @return resulting text value
+     */
     private String formatUserName(RemoteUserDto user, Long fallbackUserId) {
         if (user == null) {
             return "Пользователь #" + fallbackUserId;
@@ -522,6 +680,12 @@ public class CompetitionService {
         return fullName.isBlank() ? "Пользователь #" + fallbackUserId : fullName;
     }
 
+    /**
+     * ToGoalProgressPercent.
+     * @param currentValue current metric value
+     * @param targetValue target metric value
+     * @return calculated numeric value
+     */
     private double toGoalProgressPercent(double currentValue, Double targetValue) {
         if (targetValue == null || targetValue <= 0) {
             return 0;
@@ -529,10 +693,21 @@ public class CompetitionService {
         return Math.min(1000, (currentValue / targetValue) * 100.0);
     }
 
+    /**
+     * IsTargetReached.
+     * @param currentValue current metric value
+     * @param targetValue target metric value
+     * @return true when the condition is satisfied; otherwise false
+     */
     private boolean isTargetReached(double currentValue, Double targetValue) {
         return targetValue != null && targetValue > 0 && currentValue >= targetValue;
     }
 
+    /**
+     * Returns the provided list or an empty list when it is null.
+     * @param items source items
+     * @return prepared list with the requested data
+     */
     private <T> List<T> safeList(List<T> items) {
         return items == null ? List.of() : items;
     }

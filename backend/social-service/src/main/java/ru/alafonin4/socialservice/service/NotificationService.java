@@ -47,6 +47,11 @@ public class NotificationService {
     @Autowired
     private RestTemplate restTemplate;
 
+    /**
+     * Builds the feed.
+     * @param userId identifier of the user
+     * @return result of the operation
+     */
     public NotificationsResponse buildFeed(Long userId) {
         Map<Long, RemoteUserDto> userMap = fetchAllUsers().stream()
                 .collect(Collectors.toMap(RemoteUserDto::getId, user -> user, (left, right) -> left, HashMap::new));
@@ -189,6 +194,19 @@ public class NotificationService {
         return response;
     }
 
+    /**
+     * Builds a notification DTO from the supplied event details.
+     * @param id identifier of the target record
+     * @param type type
+     * @param title human-readable title
+     * @param message human-readable message
+     * @param priority priority
+     * @param createdAt creation timestamp
+     * @param relatedUserId identifier of the related user
+     * @param requestId identifier of the request
+     * @param competitionId identifier of the competition
+     * @return result of the operation
+     */
     private NotificationItemDto toNotification(
             String id,
             String type,
@@ -213,6 +231,11 @@ public class NotificationService {
         return dto;
     }
 
+    /**
+     * Loads workout personalization data for the specified user.
+     * @param userId identifier of the user
+     * @return result of the operation
+     */
     private RemoteWorkoutPersonalizationProfileDto fetchWorkoutPersonalization(Long userId) {
         RemoteWorkoutPersonalizationProfileDto response = restTemplate.getForObject(
                 "http://workout-service/api/personalization/user/" + userId,
@@ -221,11 +244,21 @@ public class NotificationService {
         return response == null ? new RemoteWorkoutPersonalizationProfileDto() : response;
     }
 
+    /**
+     * Loads all users required to enrich social responses.
+     * @return prepared list with the requested data
+     */
     private List<RemoteUserDto> fetchAllUsers() {
         RemoteUserDto[] response = restTemplate.getForObject("http://user-service/api/users", RemoteUserDto[].class);
         return response == null ? List.of() : Arrays.asList(response);
     }
 
+    /**
+     * Builds a user-facing name with a safe fallback.
+     * @param user user being processed
+     * @param fallbackUserId the identifier of the fallback user
+     * @return resulting text value
+     */
     private String formatUserName(RemoteUserDto user, Long fallbackUserId) {
         if (user == null) {
             return "Пользователь #" + fallbackUserId;
@@ -236,6 +269,11 @@ public class NotificationService {
         return fullName.isBlank() ? "Пользователь #" + fallbackUserId : fullName;
     }
 
+    /**
+     * Normalizes the date time.
+     * @param rawValue raw value to normalize
+     * @return result of the operation
+     */
     private LocalDateTime normalizeDateTime(String rawValue) {
         if (rawValue == null || rawValue.isBlank()) {
             return null;

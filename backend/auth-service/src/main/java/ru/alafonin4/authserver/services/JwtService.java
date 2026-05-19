@@ -27,10 +27,21 @@ public class JwtService {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    /**
+     * GenerateToken.
+     * @param userDetails Spring Security user details
+     * @return resulting text value
+     */
     public String generateToken(UserDetails userDetails) {
         return generateToken(new HashMap<>(), userDetails);
     }
 
+    /**
+     * GenerateToken.
+     * @param extraClaims extra claims
+     * @param userDetails Spring Security user details
+     * @return resulting text value
+     */
     public String generateToken(
             Map<String, Objects> extraClaims,
             UserDetails userDetails
@@ -45,28 +56,60 @@ public class JwtService {
                 .compact();
     }
 
+    /**
+     * IsTokenValid.
+     * @param token JWT token value
+     * @param userDetails Spring Security user details
+     * @return true when the condition is satisfied; otherwise false
+     */
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractEmail(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
+    /**
+     * IsTokenExpired.
+     * @param token JWT token value
+     * @return true when the condition is satisfied; otherwise false
+     */
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
+    /**
+     * Extracts the expiration.
+     * @param token JWT token value
+     * @return result of the operation
+     */
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    /**
+     * Extracts the email.
+     * @param token JWT token value
+     * @return resulting text value
+     */
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
+    /**
+     * Extracts the claim.
+     * @param token JWT token value
+     * @param claimsResolver claim mapping function
+     * @return result of the operation
+     */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
+    /**
+     * Extracts the all claims.
+     * @param token JWT token value
+     * @return result of the operation
+     */
     private Claims extractAllClaims(String token) {
         return Jwts.
                 parserBuilder()
@@ -76,11 +119,20 @@ public class JwtService {
                 .getBody();
     }
 
+    /**
+     * Returns the sign in key.
+     * @return result of the operation
+     */
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    /**
+     * IsValidToken.
+     * @param authHeader authorization header value containing the bearer token
+     * @return true when the condition is satisfied; otherwise false
+     */
     public boolean isValidToken(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return false;

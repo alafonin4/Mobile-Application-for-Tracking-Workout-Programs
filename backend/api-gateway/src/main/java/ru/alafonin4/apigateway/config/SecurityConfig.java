@@ -10,6 +10,11 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
+    /**
+     * Creates the security filter chain bean.
+     * @param serverHttpSecurity server http security
+     * @return result of the operation
+     */
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity serverHttpSecurity) {
         return serverHttpSecurity

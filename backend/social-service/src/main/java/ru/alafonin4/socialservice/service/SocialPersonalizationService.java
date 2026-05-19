@@ -29,6 +29,11 @@ public class SocialPersonalizationService {
     @Autowired
     private CompetitionService competitionService;
 
+    /**
+     * Builds the profile.
+     * @param userId identifier of the user
+     * @return result of the operation
+     */
     public SocialPersonalizationResponse buildProfile(Long userId) {
         List<Competition> competitions = competitionRepository.findDetailedByUserId(userId);
         List<CompletedCompetitionRecord> completedCompetitions = new ArrayList<>();
@@ -95,6 +100,18 @@ public class SocialPersonalizationService {
         return response;
     }
 
+    /**
+     * Builds an achievement DTO from the supplied values.
+     * @param code stable machine-readable code
+     * @param title human-readable title
+     * @param description human-readable description
+     * @param category achievement category
+     * @param currentValue current metric value
+     * @param targetValue target metric value
+     * @param unit display unit
+     * @param awardedAt awarded at
+     * @return result of the operation
+     */
     private SocialAchievementDto toAchievement(
             String code,
             String title,
@@ -121,6 +138,11 @@ public class SocialPersonalizationService {
         return dto;
     }
 
+    /**
+     * Rounds the supplied numeric value to two decimal places.
+     * @param value value being processed
+     * @return calculated numeric value
+     */
     private double round(double value) {
         return Math.round(value * 100.0) / 100.0;
     }

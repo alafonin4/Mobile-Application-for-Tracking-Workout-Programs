@@ -25,6 +25,12 @@ public class CompetitionController {
     @Autowired
     private CompetitionService competitionService;
 
+    /**
+     * Returns the global leaderboard.
+     * @param userId identifier of the user
+     * @param months amount of months included in the analysis
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/leaderboards/global/{userId}")
     public ResponseEntity<CompetitionLeaderboardResponse> getGlobalLeaderboard(
             @PathVariable("userId") Long userId,
@@ -33,6 +39,12 @@ public class CompetitionController {
         return ResponseEntity.ok(competitionService.getGlobalLeaderboard(userId, months));
     }
 
+    /**
+     * Returns the friends leaderboard.
+     * @param userId identifier of the user
+     * @param months amount of months included in the analysis
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/leaderboards/friends/{userId}")
     public ResponseEntity<CompetitionLeaderboardResponse> getFriendsLeaderboard(
             @PathVariable("userId") Long userId,
@@ -41,17 +53,33 @@ public class CompetitionController {
         return ResponseEntity.ok(competitionService.getFriendsLeaderboard(userId, months));
     }
 
+    /**
+     * Returns the user competitions.
+     * @param userId identifier of the user
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<CompetitionOverviewDto>> getUserCompetitions(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(competitionService.getUserCompetitions(userId));
     }
 
+    /**
+     * Creates a new competition.
+     * @param request request payload
+     * @return HTTP response containing the requested payload
+     */
     @PostMapping("/")
     public ResponseEntity<Void> createCompetition(@RequestBody CompetitionCreateRequest request) {
         competitionService.createCompetition(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    /**
+     * Returns the competition leaderboard.
+     * @param competitionId identifier of the competition
+     * @param userId identifier of the user
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/{competitionId}/leaderboard")
     public ResponseEntity<CompetitionLeaderboardResponse> getCompetitionLeaderboard(
             @PathVariable("competitionId") Long competitionId,
@@ -60,6 +88,12 @@ public class CompetitionController {
         return ResponseEntity.ok(competitionService.getCompetitionLeaderboard(competitionId, userId));
     }
 
+    /**
+     * AcceptInvitation.
+     * @param competitionId identifier of the competition
+     * @param userId identifier of the user
+     * @return HTTP response containing the requested payload
+     */
     @PutMapping("/{competitionId}/participants/{userId}/accept")
     public ResponseEntity<Void> acceptInvitation(
             @PathVariable("competitionId") Long competitionId,
@@ -69,6 +103,12 @@ public class CompetitionController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * DeclineInvitation.
+     * @param competitionId identifier of the competition
+     * @param userId identifier of the user
+     * @return HTTP response containing the requested payload
+     */
     @PutMapping("/{competitionId}/participants/{userId}/decline")
     public ResponseEntity<Void> declineInvitation(
             @PathVariable("competitionId") Long competitionId,

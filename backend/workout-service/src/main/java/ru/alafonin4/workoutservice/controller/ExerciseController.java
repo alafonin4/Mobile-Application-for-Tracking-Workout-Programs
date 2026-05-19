@@ -35,6 +35,12 @@ public class ExerciseController {
     @Autowired
     private ExerciseFavoriteRepository exerciseFavoriteRepository;
 
+    /**
+     * Returns the all exercises.
+     * @param muscleGroup muscle group
+     * @param requiresAdditionalWeight requires additional weight
+     * @return prepared list with the requested data
+     */
     @GetMapping({"", "/"})
     public List<Exercise> getAllExercises(
             @RequestParam(required = false) String muscleGroup,
@@ -43,6 +49,13 @@ public class ExerciseController {
         return filterExercises(muscleGroup, requiresAdditionalWeight);
     }
 
+    /**
+     * Returns the exercise catalog.
+     * @param userId identifier of the user
+     * @param muscleGroup muscle group
+     * @param requiresAdditionalWeight requires additional weight
+     * @return prepared list with the requested data
+     */
     @GetMapping("/catalog")
     public List<ExerciseCatalogItemDto> getExerciseCatalog(
             @RequestParam("userId") Long userId,
@@ -61,6 +74,11 @@ public class ExerciseController {
                 .toList();
     }
 
+    /**
+     * Returns the favorite exercises.
+     * @param userId identifier of the user
+     * @return prepared list with the requested data
+     */
     @GetMapping("/favorites/{userId}")
     public List<ExerciseCatalogItemDto> getFavoriteExercises(@PathVariable Long userId) {
         Set<Long> favoriteIds = new HashSet<>(exerciseFavoriteRepository.findByUserId(userId).stream()
@@ -74,6 +92,11 @@ public class ExerciseController {
                 .toList();
     }
 
+    /**
+     * AddFavorite.
+     * @param exerciseId identifier of the exercise
+     * @param userId identifier of the user
+     */
     @PutMapping("/{exerciseId}/favorite/{userId}")
     public void addFavorite(@PathVariable Long exerciseId, @PathVariable Long userId) {
         exerciseRepository.findById(exerciseId)
@@ -90,17 +113,32 @@ public class ExerciseController {
         exerciseFavoriteRepository.save(favorite);
     }
 
+    /**
+     * RemoveFavorite.
+     * @param exerciseId identifier of the exercise
+     * @param userId identifier of the user
+     */
     @DeleteMapping("/{exerciseId}/favorite/{userId}")
     public void removeFavorite(@PathVariable Long exerciseId, @PathVariable Long userId) {
         exerciseFavoriteRepository.deleteByUserIdAndExerciseId(userId, exerciseId);
     }
 
+    /**
+     * Returns the exercise by id.
+     * @param id identifier of the target record
+     * @return result of the operation
+     */
     @GetMapping({"/{id}", "/get/{id}"})
     public Exercise getExerciseById(@PathVariable Long id) {
         return exerciseRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found: " + id));
     }
 
+    /**
+     * Creates a new exercise.
+     * @param exercise exercise being processed
+     * @return result of the operation
+     */
     @PostMapping({"", "/", "/create"})
     public Exercise createExercise(@RequestBody Exercise exercise) {
         if (exercise.getRequiresAdditionalWeight() == null) {
@@ -109,6 +147,12 @@ public class ExerciseController {
         return exerciseRepository.save(exercise);
     }
 
+    /**
+     * Updates the exercise.
+     * @param id identifier of the target record
+     * @param updated updated
+     * @return result of the operation
+     */
     @PutMapping("/{id}")
     public Exercise updateExercise(@PathVariable Long id, @RequestBody Exercise updated) {
         Exercise existing = exerciseRepository.findById(id)
@@ -123,6 +167,10 @@ public class ExerciseController {
         return exerciseRepository.save(existing);
     }
 
+    /**
+     * Deletes the exercise.
+     * @param id identifier of the target record
+     */
     @DeleteMapping("/{id}")
     public void deleteExercise(@PathVariable Long id) {
         if (!exerciseRepository.existsById(id)) {
@@ -131,6 +179,12 @@ public class ExerciseController {
         exerciseRepository.deleteById(id);
     }
 
+    /**
+     * FilterExercises.
+     * @param muscleGroup muscle group
+     * @param requiresAdditionalWeight requires additional weight
+     * @return prepared list with the requested data
+     */
     private List<Exercise> filterExercises(String muscleGroup, Boolean requiresAdditionalWeight) {
         return exerciseRepository.findAll().stream()
                 .filter(exercise -> muscleGroup == null
@@ -143,6 +197,12 @@ public class ExerciseController {
                 .toList();
     }
 
+    /**
+     * ToCatalogItem.
+     * @param exercise exercise being processed
+     * @param favorite favorite
+     * @return result of the operation
+     */
     private ExerciseCatalogItemDto toCatalogItem(Exercise exercise, boolean favorite) {
         ExerciseCatalogItemDto dto = new ExerciseCatalogItemDto();
         dto.setId(exercise.getId());

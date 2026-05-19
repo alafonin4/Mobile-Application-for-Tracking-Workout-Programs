@@ -21,6 +21,11 @@ public class SocialInsightsController {
     @Autowired
     private NotificationService notificationService;
 
+    /**
+     * Returns the social personalization.
+     * @param userId identifier of the user
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/social-personalization/user/{userId}")
     public ResponseEntity<SocialPersonalizationResponse> getSocialPersonalization(
             @PathVariable("userId") Long userId
@@ -28,6 +33,11 @@ public class SocialInsightsController {
         return ResponseEntity.ok(socialPersonalizationService.buildProfile(userId));
     }
 
+    /**
+     * Returns the notifications.
+     * @param userId identifier of the user
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/notifications/user/{userId}")
     public ResponseEntity<NotificationsResponse> getNotifications(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(notificationService.buildFeed(userId));

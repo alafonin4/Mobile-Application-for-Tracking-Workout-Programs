@@ -40,6 +40,12 @@ public class WorkoutProgressService {
     @Autowired
     private WorkoutRepository workoutRepository;
 
+    /**
+     * Returns the user progress.
+     * @param userId identifier of the user
+     * @param months amount of months included in the analysis
+     * @return result of the operation
+     */
     @Transactional(readOnly = true)
     public WorkoutProgressResponse getUserProgress(Long userId, int months) {
         int normalizedMonths = normalizeMonths(months);
@@ -56,6 +62,13 @@ public class WorkoutProgressService {
         );
     }
 
+    /**
+     * Returns the user progress by range.
+     * @param userId identifier of the user
+     * @param fromDate start date of the requested period
+     * @param toDate end date of the requested period
+     * @return result of the operation
+     */
     @Transactional(readOnly = true)
     public WorkoutProgressResponse getUserProgressByRange(Long userId, LocalDate fromDate, LocalDate toDate) {
         LocalDate normalizedFrom = fromDate == null ? LocalDate.now().withDayOfMonth(1) : fromDate;
@@ -83,6 +96,15 @@ public class WorkoutProgressService {
         );
     }
 
+    /**
+     * Builds the user progress response.
+     * @param userId identifier of the user
+     * @param periodMonths period months
+     * @param fromDate start date of the requested period
+     * @param toDate end date of the requested period
+     * @param workouts workouts to analyze
+     * @return result of the operation
+     */
     private WorkoutProgressResponse buildUserProgressResponse(
             Long userId,
             int periodMonths,
@@ -105,6 +127,13 @@ public class WorkoutProgressService {
         return response;
     }
 
+    /**
+     * Returns the exercise progress.
+     * @param userId identifier of the user
+     * @param exerciseId identifier of the exercise
+     * @param months amount of months included in the analysis
+     * @return result of the operation
+     */
     @Transactional(readOnly = true)
     public ExerciseProgressResponse getExerciseProgress(Long userId, Long exerciseId, int months) {
         int normalizedMonths = normalizeMonths(months);
@@ -192,6 +221,12 @@ public class WorkoutProgressService {
         return response;
     }
 
+    /**
+     * Builds the summary.
+     * @param aggregated aggregated
+     * @param sessions sessions
+     * @return result of the operation
+     */
     private ProgressSummaryDto buildSummary(AggregatedMetrics aggregated, List<SessionMetrics> sessions) {
         ProgressSummaryDto summary = new ProgressSummaryDto();
         summary.setWorkoutsCount(sessions.size());
@@ -221,6 +256,11 @@ public class WorkoutProgressService {
         return summary;
     }
 
+    /**
+     * Builds the muscle group progress.
+     * @param aggregated aggregated
+     * @return prepared list with the requested data
+     */
     private List<MuscleGroupProgressDto> buildMuscleGroupProgress(AggregatedMetrics aggregated) {
         double maxVolume = aggregated.muscleGroups.values().stream()
                 .mapToDouble(group -> group.totalVolume)
@@ -249,12 +289,22 @@ public class WorkoutProgressService {
         return result;
     }
 
+    /**
+     * Builds the exercise options.
+     * @param aggregated aggregated
+     * @return prepared list with the requested data
+     */
     private List<ExerciseOptionDto> buildExerciseOptions(AggregatedMetrics aggregated) {
         return aggregated.exerciseOptions.values().stream()
                 .sorted(Comparator.comparing(ExerciseOptionDto::getExerciseName))
                 .toList();
     }
 
+    /**
+     * Builds the timeline.
+     * @param sessions sessions
+     * @return prepared list with the requested data
+     */
     private List<TimelinePointDto> buildTimeline(List<SessionMetrics> sessions) {
         Map<LocalDate, TimelineAccumulator> accumulators = new LinkedHashMap<>();
 
@@ -282,6 +332,11 @@ public class WorkoutProgressService {
         return timeline;
     }
 
+    /**
+     * Builds the sessions.
+     * @param workouts workouts to analyze
+     * @return prepared list with the requested data
+     */
     private List<SessionMetrics> buildSessions(List<Workout> workouts) {
         List<SessionMetrics> sessions = new ArrayList<>();
         Map<Long, Double> exerciseHistoricalPr = new HashMap<>();
@@ -339,6 +394,11 @@ public class WorkoutProgressService {
         return sessions;
     }
 
+    /**
+     * AggregateSessions.
+     * @param sessions sessions
+     * @return result of the operation
+     */
     private AggregatedMetrics aggregateSessions(List<SessionMetrics> sessions) {
         AggregatedMetrics aggregated = new AggregatedMetrics();
 
@@ -379,6 +439,12 @@ public class WorkoutProgressService {
         return aggregated;
     }
 
+    /**
+     * Calculates the overall composite score.
+     * @param aggregated aggregated
+     * @param sessions sessions
+     * @return result of the operation
+     */
     private CompositeScore calculateOverallCompositeScore(AggregatedMetrics aggregated, List<SessionMetrics> sessions) {
         CompositeScore score = new CompositeScore();
         if (sessions.isEmpty()) {
@@ -491,6 +557,11 @@ public class WorkoutProgressService {
         return score;
     }
 
+    /**
+     * Calculates the group composite score.
+     * @param group group
+     * @return result of the operation
+     */
     private CompositeScore calculateGroupCompositeScore(GroupAggregate group) {
         List<MetricPoint> points = group.timeline.entrySet().stream()
                 .map(entry -> new MetricPoint(
@@ -524,6 +595,11 @@ public class WorkoutProgressService {
         return score;
     }
 
+    /**
+     * Calculates the exercise composite score.
+     * @param points points
+     * @return result of the operation
+     */
     private CompositeScore calculateExerciseCompositeScore(List<MetricPoint> points) {
         CompositeScore score = new CompositeScore();
         TrendProfile profile = buildTrendProfile(points);
@@ -548,6 +624,11 @@ public class WorkoutProgressService {
         return score;
     }
 
+    /**
+     * Builds the trend profile.
+     * @param points points
+     * @return result of the operation
+     */
     private TrendProfile buildTrendProfile(List<MetricPoint> points) {
         TrendProfile profile = new TrendProfile();
         if (points.isEmpty()) {
@@ -571,6 +652,11 @@ public class WorkoutProgressService {
         return profile;
     }
 
+    /**
+     * Calculates the consistency score.
+     * @param sessions sessions
+     * @return calculated numeric value
+     */
     private double calculateConsistencyScore(List<SessionMetrics> sessions) {
         if (sessions.isEmpty()) {
             return 0;
@@ -600,6 +686,11 @@ public class WorkoutProgressService {
         return round((0.6 * frequencyAdherence + 0.4 * regularity) * 100);
     }
 
+    /**
+     * Calculates the recovery score.
+     * @param sessions sessions
+     * @return calculated numeric value
+     */
     private double calculateRecoveryScore(List<SessionMetrics> sessions) {
         if (sessions.size() < 2) {
             return 50;
@@ -619,6 +710,11 @@ public class WorkoutProgressService {
         return round((0.65 * spacingScore + 0.35 * variabilityScore) * 100);
     }
 
+    /**
+     * Calculates the balance score.
+     * @param aggregated aggregated
+     * @return calculated numeric value
+     */
     private double calculateBalanceScore(AggregatedMetrics aggregated) {
         if (aggregated.muscleGroups.isEmpty()) {
             return 0;
@@ -646,6 +742,12 @@ public class WorkoutProgressService {
         return round((0.8 * entropyNormalized + 0.2 * coverage) * 100);
     }
 
+    /**
+     * Calculates the diversity score.
+     * @param aggregated aggregated
+     * @param workoutsCount workouts count
+     * @return calculated numeric value
+     */
     private double calculateDiversityScore(AggregatedMetrics aggregated, int workoutsCount) {
         if (workoutsCount == 0) {
             return 0;
@@ -658,6 +760,12 @@ public class WorkoutProgressService {
         return round((0.7 * distinctExercisesScore + 0.3 * exercisesPerWorkoutScore) * 100);
     }
 
+    /**
+     * Calculates the personal record score.
+     * @param prCount pr count
+     * @param exposureCount exposure count
+     * @return calculated numeric value
+     */
     private double calculatePersonalRecordScore(int prCount, int exposureCount) {
         if (exposureCount <= 0) {
             return 0;
@@ -667,6 +775,18 @@ public class WorkoutProgressService {
         return round(clamp(prRate / 0.35, 0, 1) * 100);
     }
 
+    /**
+     * Creates a new component.
+     * @param code stable machine-readable code
+     * @param title human-readable title
+     * @param weight weight
+     * @param baselineValue baseline value
+     * @param currentValue current metric value
+     * @param trendPercent trend percent
+     * @param score score
+     * @param description human-readable description
+     * @return result of the operation
+     */
     private ProgressComponentDto createComponent(
             String code,
             String title,
@@ -689,6 +809,15 @@ public class WorkoutProgressService {
         return component;
     }
 
+    /**
+     * Creates a new static component.
+     * @param code stable machine-readable code
+     * @param title human-readable title
+     * @param weight weight
+     * @param score score
+     * @param description human-readable description
+     * @return result of the operation
+     */
     private ProgressComponentDto createStaticComponent(
             String code,
             String title,
@@ -705,6 +834,11 @@ public class WorkoutProgressService {
         return component;
     }
 
+    /**
+     * WeightedComponentScore.
+     * @param components components
+     * @return calculated numeric value
+     */
     private double weightedComponentScore(List<ProgressComponentDto> components) {
         double result = 0;
         for (ProgressComponentDto component : components) {
@@ -713,11 +847,23 @@ public class WorkoutProgressService {
         return result;
     }
 
+    /**
+     * GrowthScore.
+     * @param percentGrowth percent growth
+     * @param sensitivity sensitivity
+     * @return calculated numeric value
+     */
     private double growthScore(double percentGrowth, double sensitivity) {
         double normalized = Math.tanh(percentGrowth / sensitivity);
         return clamp(50 + 50 * normalized, 0, 100);
     }
 
+    /**
+     * Calculates the relative change percent.
+     * @param baseline baseline
+     * @param current current
+     * @return calculated numeric value
+     */
     private double calculateRelativeChangePercent(double baseline, double current) {
         if (Math.abs(baseline) < EPSILON) {
             return current > 0 ? 100 : 0;
@@ -725,6 +871,12 @@ public class WorkoutProgressService {
         return round(((current - baseline) / baseline) * 100);
     }
 
+    /**
+     * Calculates the estimated one rep max.
+     * @param weight weight
+     * @param reps reps
+     * @return calculated numeric value
+     */
     private double calculateEstimatedOneRepMax(double weight, int reps) {
         if (weight <= 0) {
             return 0;
@@ -732,22 +884,47 @@ public class WorkoutProgressService {
         return weight * (1 + reps / 30.0);
     }
 
+    /**
+     * PointsVolume.
+     * @param points points
+     * @return prepared list with the requested data
+     */
     private List<Double> pointsVolume(List<MetricPoint> points) {
         return points.stream().map(point -> point.volume).toList();
     }
 
+    /**
+     * PointsIntensity.
+     * @param points points
+     * @return prepared list with the requested data
+     */
     private List<Double> pointsIntensity(List<MetricPoint> points) {
         return points.stream().map(point -> point.intensity).toList();
     }
 
+    /**
+     * PointsDensity.
+     * @param points points
+     * @return prepared list with the requested data
+     */
     private List<Double> pointsDensity(List<MetricPoint> points) {
         return points.stream().map(point -> point.density).toList();
     }
 
+    /**
+     * Normalizes the months.
+     * @param months amount of months included in the analysis
+     * @return calculated numeric value
+     */
     private int normalizeMonths(int months) {
         return months <= 0 ? 1 : months;
     }
 
+    /**
+     * Normalizes the muscle group.
+     * @param muscleGroup muscle group
+     * @return resulting text value
+     */
     private String normalizeMuscleGroup(String muscleGroup) {
         if (muscleGroup == null || muscleGroup.isBlank()) {
             return "Other";
@@ -755,22 +932,49 @@ public class WorkoutProgressService {
         return muscleGroup;
     }
 
+    /**
+     * Returns a non-null integer value.
+     * @param value value being processed
+     * @return calculated numeric value
+     */
     private int safeInt(Integer value) {
         return value == null ? 0 : value;
     }
 
+    /**
+     * Returns a non-null numeric value.
+     * @param value value being processed
+     * @return calculated numeric value
+     */
     private double safeDouble(Double value) {
         return value == null ? 0 : value;
     }
 
+    /**
+     * Constrains the supplied value to the requested range.
+     * @param value value being processed
+     * @param min min
+     * @param max max
+     * @return calculated numeric value
+     */
     private double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(max, value));
     }
 
+    /**
+     * Rounds the supplied numeric value to two decimal places.
+     * @param value value being processed
+     * @return calculated numeric value
+     */
     private double round(double value) {
         return Math.round(value * 100.0) / 100.0;
     }
 
+    /**
+     * Calculates the arithmetic mean for the supplied values.
+     * @param values values being processed
+     * @return calculated numeric value
+     */
     private double average(List<Double> values) {
         if (values == null || values.isEmpty()) {
             return 0;
@@ -783,6 +987,11 @@ public class WorkoutProgressService {
         return sum / values.size();
     }
 
+    /**
+     * Calculates the coefficient of variation for the supplied values.
+     * @param values values being processed
+     * @return calculated numeric value
+     */
     private double coefficientOfVariation(List<Double> values) {
         if (values == null || values.isEmpty()) {
             return 0;
@@ -794,6 +1003,11 @@ public class WorkoutProgressService {
         return standardDeviation(values) / mean;
     }
 
+    /**
+     * Calculates the standard deviation for the supplied values.
+     * @param values values being processed
+     * @return calculated numeric value
+     */
     private double standardDeviation(List<Double> values) {
         if (values == null || values.isEmpty()) {
             return 0;
@@ -818,6 +1032,10 @@ public class WorkoutProgressService {
         private double personalRecordScore;
         private double absoluteScore;
         private double relativeProgressPercent;
+        /**
+         * ArrayList<>.
+         * @return result of the operation
+         */
         private List<ProgressComponentDto> components = new ArrayList<>();
     }
 
@@ -835,6 +1053,10 @@ public class WorkoutProgressService {
 
     private static class TimelineAccumulator {
         private double overallVolume;
+        /**
+         * LinkedHashMap<>.
+         * @return result of the operation
+         */
         private final Map<String, Double> muscleGroupVolumes = new LinkedHashMap<>();
     }
 
@@ -846,6 +1068,15 @@ public class WorkoutProgressService {
         private final double peakEstimatedOneRepMax;
         private final int personalRecords;
 
+        /**
+         * MetricPoint.
+         * @param date date being processed
+         * @param volume volume
+         * @param intensity intensity
+         * @param density density
+         * @param peakEstimatedOneRepMax peak estimated one rep max
+         * @param personalRecords personal records
+         */
         private MetricPoint(
                 LocalDate date,
                 double volume,
@@ -862,6 +1093,10 @@ public class WorkoutProgressService {
             this.personalRecords = personalRecords;
         }
 
+        /**
+         * Calculates a proxy value for the total amount of repetitions.
+         * @return calculated numeric value
+         */
         private double totalRepsProxy() {
             return intensity <= 0 ? 0 : volume / intensity;
         }
@@ -875,23 +1110,51 @@ public class WorkoutProgressService {
         private double peakEstimatedOneRepMax;
         private int personalRecordCount;
         private int totalExerciseOccurrences;
+        /**
+         * LinkedHashMap<>.
+         * @return result of the operation
+         */
         private final Map<String, GroupAggregate> muscleGroups = new LinkedHashMap<>();
+        /**
+         * LinkedHashMap<>.
+         * @return result of the operation
+         */
         private final Map<Long, ExerciseAggregate> exercises = new LinkedHashMap<>();
+        /**
+         * LinkedHashMap<>.
+         * @return result of the operation
+         */
         private final Map<Long, ExerciseOptionDto> exerciseOptions = new LinkedHashMap<>();
 
+        /**
+         * AverageSessionVolume.
+         * @return calculated numeric value
+         */
         private double averageSessionVolume() {
             int sessionCount = Math.max(1, maxTimelineSize());
             return totalVolume / sessionCount;
         }
 
+        /**
+         * AverageIntensity.
+         * @return calculated numeric value
+         */
         private double averageIntensity() {
             return totalReps == 0 ? 0 : totalVolume / totalReps;
         }
 
+        /**
+         * AverageDensity.
+         * @return calculated numeric value
+         */
         private double averageDensity() {
             return totalSets == 0 ? 0 : totalVolume / totalSets;
         }
 
+        /**
+         * Returns the maximum number of timeline points used in charts.
+         * @return calculated numeric value
+         */
         private int maxTimelineSize() {
             return exercises.values().stream()
                     .mapToInt(exercise -> Math.max(1, exercise.sessionCount))
@@ -908,13 +1171,29 @@ public class WorkoutProgressService {
         private double maxWeight;
         private double peakEstimatedOneRepMax;
         private int personalRecordCount;
+        /**
+         * LinkedHashMap<>.
+         * @return result of the operation
+         */
         private final Map<String, GroupAggregate> groupMetrics = new LinkedHashMap<>();
+        /**
+         * LinkedHashMap<>.
+         * @return result of the operation
+         */
         private final Map<Long, ExerciseAggregate> exerciseMetrics = new LinkedHashMap<>();
 
+        /**
+         * AverageIntensity.
+         * @return calculated numeric value
+         */
         private double averageIntensity() {
             return totalReps == 0 ? 0 : totalVolume / totalReps;
         }
 
+        /**
+         * AverageDensity.
+         * @return calculated numeric value
+         */
         private double averageDensity() {
             return totalSets == 0 ? 0 : totalVolume / totalSets;
         }
@@ -936,12 +1215,27 @@ public class WorkoutProgressService {
         private double peakEstimatedOneRepMax;
         private int personalRecordCount;
         private int trainingDaysCount;
+        /**
+         * LinkedHashMap<>.
+         * @return result of the operation
+         */
         private final Map<LocalDate, TimelineValue> timeline = new LinkedHashMap<>();
 
+        /**
+         * GroupAggregate.
+         * @param muscleGroup muscle group
+         */
         private GroupAggregate(String muscleGroup) {
             this.muscleGroup = muscleGroup;
         }
 
+        /**
+         * Adds a single exercise set to the current aggregate state.
+         * @param reps reps
+         * @param weight weight
+         * @param volume volume
+         * @param estimatedOneRepMax estimated one rep max
+         */
         private void addSet(int reps, double weight, double volume, double estimatedOneRepMax) {
             totalVolume += volume;
             totalReps += reps;
@@ -949,6 +1243,11 @@ public class WorkoutProgressService {
             peakEstimatedOneRepMax = Math.max(peakEstimatedOneRepMax, estimatedOneRepMax);
         }
 
+        /**
+         * Merges aggregated metrics from another source instance.
+         * @param other other
+         * @param date date being processed
+         */
         private void merge(GroupAggregate other, LocalDate date) {
             totalVolume += other.totalVolume;
             totalReps += other.totalReps;
@@ -965,10 +1264,18 @@ public class WorkoutProgressService {
             value.personalRecords += other.personalRecordCount;
         }
 
+        /**
+         * AverageIntensity.
+         * @return calculated numeric value
+         */
         private double averageIntensity() {
             return totalReps == 0 ? 0 : totalVolume / totalReps;
         }
 
+        /**
+         * AverageDensity.
+         * @return calculated numeric value
+         */
         private double averageDensity() {
             return totalSets == 0 ? 0 : totalVolume / totalSets;
         }
@@ -986,12 +1293,25 @@ public class WorkoutProgressService {
         private boolean personalRecord;
         private int sessionCount;
 
+        /**
+         * ExerciseAggregate.
+         * @param exerciseId identifier of the exercise
+         * @param exerciseName exercise name
+         * @param muscleGroup muscle group
+         */
         private ExerciseAggregate(Long exerciseId, String exerciseName, String muscleGroup) {
             this.exerciseId = exerciseId;
             this.exerciseName = exerciseName;
             this.muscleGroup = muscleGroup;
         }
 
+        /**
+         * Adds a single exercise set to the current aggregate state.
+         * @param reps reps
+         * @param weight weight
+         * @param volume volume
+         * @param estimatedOneRepMax estimated one rep max
+         */
         private void addSet(int reps, double weight, double volume, double estimatedOneRepMax) {
             totalVolume += volume;
             totalReps += reps;
@@ -1000,6 +1320,10 @@ public class WorkoutProgressService {
             peakEstimatedOneRepMax = Math.max(peakEstimatedOneRepMax, estimatedOneRepMax);
         }
 
+        /**
+         * Merges aggregated metrics from another source instance.
+         * @param other other
+         */
         private void merge(ExerciseAggregate other) {
             totalVolume += other.totalVolume;
             totalReps += other.totalReps;
@@ -1012,10 +1336,18 @@ public class WorkoutProgressService {
             }
         }
 
+        /**
+         * AverageIntensity.
+         * @return calculated numeric value
+         */
         private double averageIntensity() {
             return totalReps == 0 ? 0 : totalVolume / totalReps;
         }
 
+        /**
+         * AverageDensity.
+         * @return calculated numeric value
+         */
         private double averageDensity() {
             return totalSets == 0 ? 0 : totalVolume / totalSets;
         }

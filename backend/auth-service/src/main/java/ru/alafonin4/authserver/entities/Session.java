@@ -22,22 +22,42 @@ public class Session {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
+    /**
+     * Returns the session token.
+     * @return resulting text value
+     */
     public String getSessionToken() {
         return sessionToken;
     }
 
+    /**
+     * Updates the session token.
+     * @param sessionToken persisted session token
+     */
     public void setSessionToken(String sessionToken) {
         this.sessionToken = sessionToken;
     }
 
+    /**
+     * Returns the user.
+     * @return result of the operation
+     */
     public User getUser() {
         return user;
     }
 
+    /**
+     * Updates the user.
+     * @param user user being processed
+     */
     public void setUser(User user) {
         this.user = user;
     }
 
+    /**
+     * Returns the id.
+     * @return result of the operation
+     */
     public Long getId() {
         return id;
     }

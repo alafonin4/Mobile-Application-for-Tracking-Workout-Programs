@@ -39,46 +39,90 @@ public class WorkoutExercise {
     @Column(length = 500)
     private String notes;
 
+    /**
+     * ArrayList<>.
+     * @return result of the operation
+     */
     @JsonManagedReference
     @OneToMany(mappedBy = "workoutExercise", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExerciseSet> sets = new ArrayList<>();
 
+    /**
+     * Returns the id.
+     * @return result of the operation
+     */
     public Long getId() {
         return id;
     }
 
+    /**
+     * Updates the id.
+     * @param id identifier of the target record
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /**
+     * Returns the workout.
+     * @return result of the operation
+     */
     public Workout getWorkout() {
         return workout;
     }
 
+    /**
+     * Updates the workout.
+     * @param workout workout being processed
+     */
     public void setWorkout(Workout workout) {
         this.workout = workout;
     }
 
+    /**
+     * Returns the exercise.
+     * @return result of the operation
+     */
     public Exercise getExercise() {
         return exercise;
     }
 
+    /**
+     * Updates the exercise.
+     * @param exercise exercise being processed
+     */
     public void setExercise(Exercise exercise) {
         this.exercise = exercise;
     }
 
+    /**
+     * Returns the notes.
+     * @return resulting text value
+     */
     public String getNotes() {
         return notes;
     }
 
+    /**
+     * Updates the notes.
+     * @param notes new notes
+     */
     public void setNotes(String notes) {
         this.notes = notes;
     }
 
+    /**
+     * Returns the sets.
+     * @return prepared list with the requested data
+     */
     public List<ExerciseSet> getSets() {
         return sets;
     }
 
+    /**
+     * Updates the sets.
+     * @param sets new sets
+     */
     public void setSets(List<ExerciseSet> sets) {
         this.sets = sets;
     }

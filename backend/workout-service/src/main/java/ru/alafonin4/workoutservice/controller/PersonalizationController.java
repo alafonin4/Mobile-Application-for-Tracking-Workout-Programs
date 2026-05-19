@@ -17,11 +17,22 @@ public class PersonalizationController {
     @Autowired
     private PersonalizationService personalizationService;
 
+    /**
+     * Returns the profile.
+     * @param userId identifier of the user
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/user/{userId}")
     public ResponseEntity<PersonalizationProfileResponse> getProfile(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(personalizationService.buildProfile(userId));
     }
 
+    /**
+     * Returns the program adaptation.
+     * @param userId identifier of the user
+     * @param programId identifier of the training program
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/user/{userId}/program/{programId}")
     public ResponseEntity<ProgramAdaptationResponse> getProgramAdaptation(
             @PathVariable("userId") Long userId,

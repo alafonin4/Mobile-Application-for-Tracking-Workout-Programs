@@ -22,12 +22,20 @@ public class ApplicationConfig {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Creates the UserDetailsService bean.
+     * @return result of the operation
+     */
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Not found user with email: " + username));
     }
 
+    /**
+     * Creates the authentication provider bean.
+     * @return result of the operation
+     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -37,11 +45,20 @@ public class ApplicationConfig {
         return provider;
     }
 
+    /**
+     * Creates the password encoder bean.
+     * @return result of the operation
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * AuthenticationManager.
+     * @param configuration configuration
+     * @return result of the operation
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();

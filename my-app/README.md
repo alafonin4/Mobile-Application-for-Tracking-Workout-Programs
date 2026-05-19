@@ -1,50 +1,121 @@
-# Welcome to your Expo app 👋
+# Frontend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Mobile client for the workout tracking platform built with Expo, React Native, and Expo Router.
 
-## Get started
+## Responsibilities
 
-1. Install dependencies
+- Authentication flow
+- Profile viewing and editing
+- Friends and social interactions
+- Competitions and leaderboards
+- Workout logging
+- Training program management
+- Progress analytics and charts
+- Personalization, achievements, and personal records
+- In-app notifications
 
-   ```bash
-   npm install
-   ```
+## Stack
 
-2. Start the app
+- Expo 55
+- React Native 0.83
+- React 19
+- Expo Router
+- Axios
+- Formik
+- Yup
 
-   ```bash
-    npx expo start
-   ```
+## Project Layout
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```text
+my-app/
+├── api/          # HTTP requests grouped by domain
+├── app/          # Expo Router screens
+├── components/   # Reusable UI blocks
+├── constants/    # Shared constants and theme data
+├── hooks/        # Reusable hooks
+├── utils/        # Frontend helpers and mapping logic
+└── assets/       # Static media
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Important Feature Areas
 
-## Learn more
+### Authentication
 
-To learn more about developing your project with Expo, look at the following resources:
+- registration
+- login
+- secure token storage
+- account management actions
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Profile
 
-## Join the community
+- current user profile
+- other user profile preview
+- avatar editing
+- fitness goal display and editing
+- achievements preview and full achievements screen
+- personal records and wellness insights
 
-Join our community of developers creating universal apps.
+### Workouts and programs
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- workout CRUD
+- training program CRUD
+- exercise catalog and favorites
+- program adaptation recommendations
+
+### Progress
+
+- summary metrics
+- muscle-group spider chart
+- weekly activity bar chart
+- exercise-specific progress
+
+### Social
+
+- friend requests
+- accepted friends
+- user-created competitions
+- leaderboards
+
+### Notifications
+
+The app currently includes an in-app notifications screen for:
+
+- friend requests
+- accepted requests
+- competition invites
+- smart reminders
+- achievement unlocks
+
+## Environment Expectations
+
+The app expects the backend services to be available through the API Gateway. If your local backend host or port changes, update the frontend API configuration files in [my-app/api](/E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/api).
+
+## Scripts
+
+From [package.json](/E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/package.json):
+
+```bash
+npm install
+npm run start
+npm run android
+npm run ios
+npm run web
+npm test
+npm run lint
+```
+
+## Development Notes
+
+- Routing is file-based through Expo Router
+- API calls are normalized so screens can show clear backend error messages
+- Personalization data is assembled from multiple backend endpoints
+- The UI supports both self-profile and other-user profile scenarios
+
+## Recommended Manual Checks
+
+1. Sign in and verify token persistence
+2. Open profile, achievements, and notifications
+3. Create and edit a workout
+4. Open the progress screen and verify charts render with zero values when data is missing
+5. Open a training program and verify adaptation suggestions
+6. Test friend request and competition invite flows

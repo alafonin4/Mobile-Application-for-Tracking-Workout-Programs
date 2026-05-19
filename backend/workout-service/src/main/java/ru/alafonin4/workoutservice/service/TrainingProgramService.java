@@ -19,11 +19,21 @@ public class TrainingProgramService {
     @Autowired
     private TrainingProgramRepository trainingProgramRepository;
 
+    /**
+     * Creates a new program.
+     * @param program training program being processed
+     * @return result of the operation
+     */
     public TrainingProgram createProgram(TrainingProgram program) {
         normalizeProgram(program);
         return trainingProgramRepository.save(program);
     }
 
+    /**
+     * Returns the program by id.
+     * @param id identifier of the target record
+     * @return result of the operation
+     */
     @Transactional(readOnly = true)
     public TrainingProgram getProgramById(Long id) {
         TrainingProgram program = trainingProgramRepository.findById(id)
@@ -32,6 +42,11 @@ public class TrainingProgramService {
         return program;
     }
 
+    /**
+     * Returns the programs by user id.
+     * @param userId identifier of the user
+     * @return prepared list with the requested data
+     */
     @Transactional(readOnly = true)
     public List<TrainingProgram> getProgramsByUserId(Long userId) {
         List<TrainingProgram> programs = trainingProgramRepository.findByUserIdOrderByIdDesc(userId);
@@ -39,6 +54,12 @@ public class TrainingProgramService {
         return programs;
     }
 
+    /**
+     * Updates the program.
+     * @param id identifier of the target record
+     * @param updatedProgram updated training program state
+     * @return result of the operation
+     */
     public TrainingProgram updateProgram(Long id, TrainingProgram updatedProgram) {
         return trainingProgramRepository.findById(id).map(existingProgram -> {
             existingProgram.setUserId(updatedProgram.getUserId());
@@ -53,6 +74,10 @@ public class TrainingProgramService {
         }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Training program not found with id " + id));
     }
 
+    /**
+     * Deletes the program.
+     * @param id identifier of the target record
+     */
     public void deleteProgram(Long id) {
         if (!trainingProgramRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Training program not found with id " + id);
@@ -60,6 +85,10 @@ public class TrainingProgramService {
         trainingProgramRepository.deleteById(id);
     }
 
+    /**
+     * Normalizes the program.
+     * @param program training program being processed
+     */
     private void normalizeProgram(TrainingProgram program) {
         if (program.getTrainingDays() == null) {
             program.setTrainingDays(new ArrayList<>());
@@ -80,6 +109,10 @@ public class TrainingProgramService {
         }
     }
 
+    /**
+     * InitializeProgram.
+     * @param program training program being processed
+     */
     private void initializeProgram(TrainingProgram program) {
         program.getTrainingDays().size();
         for (TrainingDay day : program.getTrainingDays()) {

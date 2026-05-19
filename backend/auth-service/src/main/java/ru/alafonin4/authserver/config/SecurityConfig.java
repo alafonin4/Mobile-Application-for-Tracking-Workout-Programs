@@ -28,6 +28,11 @@ public class SecurityConfig {
     @Autowired
     private AuthenticationProvider authenticationProvider;
 
+    /**
+     * SecurityFilterChain.
+     * @param httpSecurity http security
+     * @return result of the operation
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
@@ -48,6 +53,10 @@ public class SecurityConfig {
         return httpSecurity.build();
     }
 
+    /**
+     * Creates the CORS configuration source bean.
+     * @return result of the operation
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

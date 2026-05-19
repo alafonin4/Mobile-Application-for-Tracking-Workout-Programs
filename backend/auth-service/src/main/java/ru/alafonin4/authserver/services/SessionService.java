@@ -18,6 +18,11 @@ public class SessionService {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Saves the supplied data.
+     * @param request request payload
+     * @param response response payload
+     */
     public void save(AuthRequest request, AuthResponse response) {
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new UsernameNotFoundException("Not found user with email: " + request.getEmail()));
 

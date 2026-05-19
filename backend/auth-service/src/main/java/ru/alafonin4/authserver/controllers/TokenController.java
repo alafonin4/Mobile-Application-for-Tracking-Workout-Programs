@@ -22,12 +22,22 @@ public class TokenController {
     @Autowired
     private UserService userService;
 
+    /**
+     * Validates the supplied bearer token.
+     * @param authToken authorization header value containing the bearer token
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/validate")
     public ResponseEntity<Boolean> validateToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String authToken) {
         boolean isValid = jwtService.isValidToken(authToken);
         return ResponseEntity.ok(isValid);
     }
 
+    /**
+     * Returns user information resolved from the supplied token.
+     * @param authToken authorization header value containing the bearer token
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/user-info")
     public ResponseEntity<UserInfoResponse> userInfo(@RequestHeader(HttpHeaders.AUTHORIZATION) String authToken) {
         if (!jwtService.isValidToken(authToken)) {

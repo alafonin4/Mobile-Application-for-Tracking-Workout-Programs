@@ -13,6 +13,11 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Returns the user info by email.
+     * @param email email
+     * @return result of the operation
+     */
     public UserInfoResponse getUserInfoByEmail(String email) {
         var user = userRepository.findByEmail(email);
 

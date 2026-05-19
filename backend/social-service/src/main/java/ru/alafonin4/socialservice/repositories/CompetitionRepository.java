@@ -12,6 +12,12 @@ import java.util.Optional;
 @Repository
 public interface CompetitionRepository extends JpaRepository<Competition, Long> {
 
+    /**
+     * Loads a competition together with its participants.
+     *
+     * @param competitionId identifier of the competition
+     * @return optional competition with eagerly loaded participant data
+     */
     @Query("""
             select distinct c
             from Competition c
@@ -20,6 +26,12 @@ public interface CompetitionRepository extends JpaRepository<Competition, Long> 
             """)
     Optional<Competition> findDetailedById(@Param("competitionId") Long competitionId);
 
+    /**
+     * Loads all competitions related to the specified user together with their participants.
+     *
+     * @param userId identifier of the user whose competitions should be loaded
+     * @return list of competitions that include the supplied user
+     */
     @Query("""
             select distinct c
             from Competition c

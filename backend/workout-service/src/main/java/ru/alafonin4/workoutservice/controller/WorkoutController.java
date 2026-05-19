@@ -31,36 +31,68 @@ public class WorkoutController {
     @Autowired
     private WorkoutProgressService workoutProgressService;
 
+    /**
+     * Creates a new workout.
+     * @param workout workout being processed
+     * @return HTTP response containing the requested payload
+     */
     @PostMapping({"", "/"})
     public ResponseEntity<Workout> createWorkout(@RequestBody Workout workout) {
         Workout createdWorkout = workoutService.createWorkout(workout);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdWorkout);
     }
 
+    /**
+     * Returns the workout.
+     * @param id identifier of the target record
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Workout> getWorkout(@PathVariable("id") Long id) {
         Workout workout = workoutService.getWorkoutById(id);
         return ResponseEntity.ok(workout);
     }
 
+    /**
+     * Returns the workouts by user.
+     * @param userId identifier of the user
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Workout>> getWorkoutsByUser(@PathVariable("userId") Long userId) {
         List<Workout> workouts = workoutService.getWorkoutsByUserId(userId);
         return ResponseEntity.ok(workouts);
     }
 
+    /**
+     * Updates the workout.
+     * @param id identifier of the target record
+     * @param workout workout being processed
+     * @return HTTP response containing the requested payload
+     */
     @PutMapping("/{id}")
     public ResponseEntity<Workout> updateWorkout(@PathVariable("id") Long id, @RequestBody Workout workout) {
         Workout updatedWorkout = workoutService.updateWorkout(id, workout);
         return ResponseEntity.ok(updatedWorkout);
     }
 
+    /**
+     * Deletes the workout.
+     * @param id identifier of the target record
+     * @return HTTP response containing the requested payload
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteWorkout(@PathVariable("id") Long id) {
         workoutService.deleteWorkout(id);
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Returns the user progress.
+     * @param userId identifier of the user
+     * @param months amount of months included in the analysis
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/progress/user/{userId}")
     public ResponseEntity<WorkoutProgressResponse> getUserProgress(
             @PathVariable("userId") Long userId,
@@ -69,6 +101,13 @@ public class WorkoutController {
         return ResponseEntity.ok(workoutProgressService.getUserProgress(userId, months));
     }
 
+    /**
+     * Returns the user progress by range.
+     * @param userId identifier of the user
+     * @param fromDate start date of the requested period
+     * @param toDate end date of the requested period
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/progress/user/{userId}/range")
     public ResponseEntity<WorkoutProgressResponse> getUserProgressByRange(
             @PathVariable("userId") Long userId,
@@ -78,6 +117,13 @@ public class WorkoutController {
         return ResponseEntity.ok(workoutProgressService.getUserProgressByRange(userId, fromDate, toDate));
     }
 
+    /**
+     * Returns the exercise progress.
+     * @param userId identifier of the user
+     * @param exerciseId identifier of the exercise
+     * @param months amount of months included in the analysis
+     * @return HTTP response containing the requested payload
+     */
     @GetMapping("/progress/user/{userId}/exercise/{exerciseId}")
     public ResponseEntity<ExerciseProgressResponse> getExerciseProgress(
             @PathVariable("userId") Long userId,

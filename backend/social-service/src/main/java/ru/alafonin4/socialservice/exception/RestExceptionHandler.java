@@ -10,6 +10,12 @@ import org.springframework.web.server.ResponseStatusException;
 @RestControllerAdvice
 public class RestExceptionHandler {
 
+    /**
+     * Handles response status exception and prepares the response payload.
+     * @param exception exception
+     * @param request request payload
+     * @return HTTP response containing the requested payload
+     */
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiErrorResponse> handleResponseStatusException(
             ResponseStatusException exception,
@@ -29,6 +35,11 @@ public class RestExceptionHandler {
                 ));
     }
 
+    /**
+     * Handles unexpected exception and prepares the response payload.
+     * @param request request payload
+     * @return HTTP response containing the requested payload
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpectedException(HttpServletRequest request) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;

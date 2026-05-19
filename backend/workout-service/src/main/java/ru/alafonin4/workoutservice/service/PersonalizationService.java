@@ -39,7 +39,6 @@ import java.util.Set;
 @Service
 @Transactional(readOnly = true)
 public class PersonalizationService {
-
     private static final List<String> BASE_MUSCLE_GROUPS = List.of(
             "Грудь",
             "Спина",
@@ -57,6 +56,11 @@ public class PersonalizationService {
     @Autowired
     private TrainingProgramRepository trainingProgramRepository;
 
+    /**
+     * Builds the profile.
+     * @param userId identifier of the user
+     * @return result of the operation
+     */
     public PersonalizationProfileResponse buildProfile(Long userId) {
         List<Workout> workouts = workoutRepository.findByUserIdOrderByWorkoutDateAsc(userId);
         AchievementMilestones milestones = determineAchievementMilestones(workouts);
@@ -80,6 +84,12 @@ public class PersonalizationService {
         return response;
     }
 
+    /**
+     * Builds the program adaptation.
+     * @param userId identifier of the user
+     * @param programId identifier of the training program
+     * @return result of the operation
+     */
     public ProgramAdaptationResponse buildProgramAdaptation(Long userId, Long programId) {
         TrainingProgram program = trainingProgramRepository.findById(programId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Training program not found with id " + programId));
@@ -120,6 +130,12 @@ public class PersonalizationService {
         return response;
     }
 
+    /**
+     * Builds the achievements.
+     * @param workouts workouts to analyze
+     * @param milestones calculated achievement milestone dates
+     * @return prepared list with the requested data
+     */
     private List<AchievementDto> buildAchievements(List<Workout> workouts, AchievementMilestones milestones) {
         WorkoutStats stats = buildWorkoutStats(workouts);
         List<AchievementDto> achievements = new ArrayList<>();
@@ -208,6 +224,11 @@ public class PersonalizationService {
         return achievements;
     }
 
+    /**
+     * Determines the achievement milestones.
+     * @param workouts workouts to analyze
+     * @return result of the operation
+     */
     private AchievementMilestones determineAchievementMilestones(List<Workout> workouts) {
         AchievementMilestones milestones = new AchievementMilestones();
         Map<String, Integer> monthCounts = new HashMap<>();
@@ -269,6 +290,11 @@ public class PersonalizationService {
         return milestones;
     }
 
+    /**
+     * Builds the personal records.
+     * @param workouts workouts to analyze
+     * @return prepared list with the requested data
+     */
     private List<PersonalRecordDto> buildPersonalRecords(List<Workout> workouts) {
         SetRecord bestWeight = null;
         SetRecord maxReps = null;
@@ -357,6 +383,11 @@ public class PersonalizationService {
         return records;
     }
 
+    /**
+     * Builds the muscle balance.
+     * @param workouts workouts to analyze
+     * @return prepared list with the requested data
+     */
     private List<MuscleBalanceDto> buildMuscleBalance(List<Workout> workouts) {
         Map<String, Double> volumeByGroup = new LinkedHashMap<>();
         for (String group : BASE_MUSCLE_GROUPS) {
@@ -395,6 +426,13 @@ public class PersonalizationService {
         return items;
     }
 
+    /**
+     * Builds the smart reminders.
+     * @param workouts workouts to analyze
+     * @param recoveryScore calculated recovery score
+     * @param muscleBalance muscle-balance snapshot used for personalization
+     * @return prepared list with the requested data
+     */
     private List<SmartReminderDto> buildSmartReminders(
             List<Workout> workouts,
             int recoveryScore,
@@ -481,6 +519,14 @@ public class PersonalizationService {
         return reminders;
     }
 
+    /**
+     * Builds the profile message.
+     * @param workouts workouts to analyze
+     * @param achievements achievements
+     * @param recoveryScore calculated recovery score
+     * @param smartReminders smart reminders
+     * @return resulting text value
+     */
     private String buildProfileMessage(
             List<Workout> workouts,
             List<AchievementDto> achievements,
@@ -506,6 +552,11 @@ public class PersonalizationService {
         return "Прогресс идёт ровно: сохраняйте регулярность, и система продолжит открывать новые достижения и подсказывать изменения нагрузки.";
     }
 
+    /**
+     * Calculates the recovery score.
+     * @param workouts workouts to analyze
+     * @return calculated numeric value
+     */
     private int calculateRecoveryScore(List<Workout> workouts) {
         if (workouts.isEmpty()) {
             return 60;
@@ -548,6 +599,11 @@ public class PersonalizationService {
         return Math.max(20, Math.min(95, score));
     }
 
+    /**
+     * Builds the recovery status.
+     * @param recoveryScore calculated recovery score
+     * @return resulting text value
+     */
     private String buildRecoveryStatus(int recoveryScore) {
         if (recoveryScore >= 80) {
             return "Готов к интенсивной тренировке";
@@ -561,6 +617,14 @@ public class PersonalizationService {
         return "Нужна разгрузка и спокойный возврат в ритм";
     }
 
+    /**
+     * Builds the suggestion.
+     * @param day training day being processed
+     * @param exercise exercise being processed
+     * @param history historical performance snapshots
+     * @param daysSinceLastWorkout days elapsed since the last workout
+     * @return result of the operation
+     */
     public ProgramAdaptationSuggestionDto buildSuggestion(
             TrainingDay day,
             TrainingDayExercise exercise,
@@ -618,6 +682,13 @@ public class PersonalizationService {
         return null;
     }
 
+    /**
+     * Creates a base adaptation suggestion populated with exercise metadata.
+     * @param dayIdentifier identifier of the training day
+     * @param exercise exercise being processed
+     * @param exerciseName exercise name
+     * @return result of the operation
+     */
     private ProgramAdaptationSuggestionDto baseSuggestion(
             String dayIdentifier,
             TrainingDayExercise exercise,
@@ -630,12 +701,23 @@ public class PersonalizationService {
         return suggestion;
     }
 
+    /**
+     * Determines whether increase weight.
+     * @param history historical performance snapshots
+     * @param currentReps currently recommended repetitions
+     * @return true when the condition is satisfied; otherwise false
+     */
     private boolean shouldIncreaseWeight(List<ExercisePerformanceSnapshot> history, int currentReps) {
         List<ExercisePerformanceSnapshot> recent = getRecentSnapshots(history, 3);
         int repThreshold = Math.max(12, currentReps > 0 ? currentReps : 10);
         return recent.stream().allMatch(snapshot -> snapshot.maxReps >= repThreshold || snapshot.averageReps >= repThreshold);
     }
 
+    /**
+     * Determines whether reduce load.
+     * @param history historical performance snapshots
+     * @return true when the condition is satisfied; otherwise false
+     */
     private boolean shouldReduceLoad(List<ExercisePerformanceSnapshot> history) {
         List<ExercisePerformanceSnapshot> recent = getRecentSnapshots(history, 3);
         if (recent.size() < 3) {
@@ -651,11 +733,23 @@ public class PersonalizationService {
                 && third.averageReps <= second.averageReps;
     }
 
+    /**
+     * Returns the most recent performance snapshots.
+     * @param history historical performance snapshots
+     * @param limit maximum amount of items to return
+     * @return prepared list with the requested data
+     */
     private List<ExercisePerformanceSnapshot> getRecentSnapshots(List<ExercisePerformanceSnapshot> history, int limit) {
         int fromIndex = Math.max(0, history.size() - limit);
         return history.subList(fromIndex, history.size());
     }
 
+    /**
+     * Builds the readiness message.
+     * @param daysSinceLastWorkout days elapsed since the last workout
+     * @param suggestions program adaptation suggestions
+     * @return resulting text value
+     */
     private String buildReadinessMessage(Integer daysSinceLastWorkout, List<ProgramAdaptationSuggestionDto> suggestions) {
         if (daysSinceLastWorkout == null) {
             return "Пока нет завершённых тренировок. После первых занятий система начнёт давать точные рекомендации.";
@@ -669,6 +763,11 @@ public class PersonalizationService {
         return "Найдены точки роста: система предлагает скорректировать нагрузку по отдельным упражнениям.";
     }
 
+    /**
+     * Builds the exercise performance map.
+     * @param workouts workouts to analyze
+     * @return prepared list with the requested data
+     */
     private Map<Long, List<ExercisePerformanceSnapshot>> buildExercisePerformanceMap(List<Workout> workouts) {
         Map<Long, List<ExercisePerformanceSnapshot>> result = new HashMap<>();
 
@@ -703,6 +802,11 @@ public class PersonalizationService {
         return result;
     }
 
+    /**
+     * Builds the workout stats.
+     * @param workouts workouts to analyze
+     * @return result of the operation
+     */
     private WorkoutStats buildWorkoutStats(List<Workout> workouts) {
         WorkoutStats stats = new WorkoutStats();
         stats.workoutsCount = workouts.size();
@@ -739,6 +843,18 @@ public class PersonalizationService {
         return stats;
     }
 
+    /**
+     * Builds an achievement DTO from the supplied values.
+     * @param code stable machine-readable code
+     * @param title human-readable title
+     * @param description human-readable description
+     * @param category achievement category
+     * @param currentValue current metric value
+     * @param targetValue target metric value
+     * @param unit display unit
+     * @param awardedAt awarded at
+     * @return result of the operation
+     */
     private AchievementDto toAchievement(
             String code,
             String title,
@@ -765,6 +881,17 @@ public class PersonalizationService {
         return dto;
     }
 
+    /**
+     * Builds a personal record DTO from the supplied values.
+     * @param code stable machine-readable code
+     * @param title human-readable title
+     * @param exerciseName exercise name
+     * @param value value being processed
+     * @param unit display unit
+     * @param date date being processed
+     * @param subtitle subtitle
+     * @return result of the operation
+     */
     private PersonalRecordDto toRecord(
             String code,
             String title,
@@ -785,6 +912,15 @@ public class PersonalizationService {
         return dto;
     }
 
+    /**
+     * Builds a smart reminder DTO from the supplied values.
+     * @param code stable machine-readable code
+     * @param title human-readable title
+     * @param message human-readable message
+     * @param severity severity level of the reminder
+     * @param createdAt creation timestamp
+     * @return result of the operation
+     */
     private SmartReminderDto toReminder(
             String code,
             String title,
@@ -801,6 +937,12 @@ public class PersonalizationService {
         return dto;
     }
 
+    /**
+     * Resolves the muscle balance status.
+     * @param sharePercent share percent
+     * @param totalVolume total volume
+     * @return resulting text value
+     */
     private String resolveMuscleBalanceStatus(double sharePercent, double totalVolume) {
         if (totalVolume <= 0) {
             return "neutral";
@@ -814,6 +956,11 @@ public class PersonalizationService {
         return "balanced";
     }
 
+    /**
+     * Returns the date of the latest workout in the supplied list.
+     * @param workouts workouts to analyze
+     * @return result of the operation
+     */
     private LocalDate latestWorkoutDate(List<Workout> workouts) {
         if (workouts.isEmpty()) {
             return LocalDate.now();
@@ -821,6 +968,12 @@ public class PersonalizationService {
         return getWorkoutDate(workouts.get(workouts.size() - 1)).toLocalDate();
     }
 
+    /**
+     * Counts the workouts from.
+     * @param workouts workouts to analyze
+     * @param fromDate start date of the requested period
+     * @return calculated numeric value
+     */
     private int countWorkoutsFrom(List<Workout> workouts, LocalDateTime fromDate) {
         int count = 0;
         for (Workout workout : workouts) {
@@ -831,6 +984,11 @@ public class PersonalizationService {
         return count;
     }
 
+    /**
+     * Resolves the first day of the week for the supplied date.
+     * @param date date being processed
+     * @return result of the operation
+     */
     private LocalDate startOfWeek(LocalDate date) {
         DayOfWeek firstDayOfWeek = WeekFields.of(Locale.getDefault()).getFirstDayOfWeek();
         while (date.getDayOfWeek() != firstDayOfWeek) {
@@ -839,15 +997,31 @@ public class PersonalizationService {
         return date;
     }
 
+    /**
+     * Returns the workout date or a safe fallback value.
+     * @param workout workout being processed
+     * @return result of the operation
+     */
     private LocalDateTime getWorkoutDate(Workout workout) {
         return workout.getWorkoutDate() == null ? LocalDateTime.MIN.plusYears(2000) : workout.getWorkoutDate();
     }
 
+    /**
+     * Calculates the weight step.
+     * @param currentWeight currently recommended working weight
+     * @return calculated numeric value
+     */
     private double calculateWeightStep(double currentWeight) {
         double rawStep = Math.max(2.5, currentWeight * 0.05);
         return Math.max(0.5, Math.round(rawStep * 2.0) / 2.0);
     }
 
+    /**
+     * Calculates a reduced working weight using the supplied percentage.
+     * @param currentWeight currently recommended working weight
+     * @param percent percentage used in the calculation
+     * @return calculated numeric value
+     */
     private double safeDecreaseWeight(double currentWeight, double percent) {
         if (currentWeight <= 0) {
             return 0;
@@ -855,22 +1029,48 @@ public class PersonalizationService {
         return currentWeight * (1 - percent);
     }
 
+    /**
+     * Returns the provided list or an empty list when it is null.
+     * @param items source items
+     * @return prepared list with the requested data
+     */
     private <T> List<T> safeList(List<T> items) {
         return items == null ? List.of() : items;
     }
 
+    /**
+     * Returns a non-blank text value.
+     * @param value value being processed
+     * @param fallback fallback value used when the primary value is missing
+     * @return resulting text value
+     */
     private String safeText(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
     }
 
+    /**
+     * Returns a non-null integer value.
+     * @param value value being processed
+     * @return calculated numeric value
+     */
     private int safeInt(Integer value) {
         return value == null ? 0 : value;
     }
 
+    /**
+     * Returns a non-null numeric value.
+     * @param value value being processed
+     * @return calculated numeric value
+     */
     private double safeDouble(Double value) {
         return value == null ? 0 : value;
     }
 
+    /**
+     * Rounds the supplied numeric value to two decimal places.
+     * @param value value being processed
+     * @return calculated numeric value
+     */
     private double round(double value) {
         return Math.round(value * 100.0) / 100.0;
     }
@@ -915,6 +1115,12 @@ public class PersonalizationService {
         private final double volume;
         private final LocalDate date;
 
+        /**
+         * SetRecord.
+         * @param exerciseName exercise name
+         * @param value value being processed
+         * @param date date being processed
+         */
         private SetRecord(String exerciseName, double value, LocalDate date) {
             this.exerciseName = exerciseName;
             this.value = value;
@@ -923,6 +1129,13 @@ public class PersonalizationService {
             this.date = date;
         }
 
+        /**
+         * SetRecord.
+         * @param exerciseName exercise name
+         * @param reps reps
+         * @param volume volume
+         * @param date date being processed
+         */
         private SetRecord(String exerciseName, int reps, double volume, LocalDate date) {
             this.exerciseName = exerciseName;
             this.value = 0;
@@ -937,6 +1150,12 @@ public class PersonalizationService {
         private final double volume;
         private final LocalDate date;
 
+        /**
+         * SessionRecord.
+         * @param name name
+         * @param volume volume
+         * @param date date being processed
+         */
         private SessionRecord(String name, double volume, LocalDate date) {
             this.name = name;
             this.volume = volume;

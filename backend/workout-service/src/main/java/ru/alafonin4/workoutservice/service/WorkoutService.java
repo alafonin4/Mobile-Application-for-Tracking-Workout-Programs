@@ -24,11 +24,21 @@ public class WorkoutService {
     @Autowired
     private ExerciseRepository exerciseRepository;
 
+    /**
+     * Creates a new workout.
+     * @param workout workout being processed
+     * @return result of the operation
+     */
     public Workout createWorkout(Workout workout) {
         normalizeWorkout(workout);
         return workoutRepository.save(workout);
     }
 
+    /**
+     * Returns the workout by id.
+     * @param id identifier of the target record
+     * @return result of the operation
+     */
     @Transactional(readOnly = true)
     public Workout getWorkoutById(Long id) {
         Workout workout = workoutRepository.findById(id)
@@ -37,6 +47,11 @@ public class WorkoutService {
         return workout;
     }
 
+    /**
+     * Returns the workouts by user id.
+     * @param userId identifier of the user
+     * @return prepared list with the requested data
+     */
     @Transactional(readOnly = true)
     public List<Workout> getWorkoutsByUserId(Long userId) {
         List<Workout> workouts = workoutRepository.findByUserIdOrderByWorkoutDateAsc(userId);
@@ -44,6 +59,12 @@ public class WorkoutService {
         return workouts;
     }
 
+    /**
+     * Updates the workout.
+     * @param id identifier of the target record
+     * @param updatedWorkout updated workout state
+     * @return result of the operation
+     */
     public Workout updateWorkout(Long id, Workout updatedWorkout) {
         return workoutRepository.findById(id).map(existingWorkout -> {
             existingWorkout.setUserId(updatedWorkout.getUserId());
@@ -58,6 +79,10 @@ public class WorkoutService {
         }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Workout not found with id " + id));
     }
 
+    /**
+     * Deletes the workout.
+     * @param id identifier of the target record
+     */
     public void deleteWorkout(Long id) {
         if (!workoutRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Workout not found with id " + id);
@@ -66,6 +91,10 @@ public class WorkoutService {
     }
 
 
+    /**
+     * Normalizes the workout.
+     * @param workout workout being processed
+     */
     private void normalizeWorkout(Workout workout) {
 
         if (workout.getName() == null || workout.getName().isBlank()) {
@@ -123,6 +152,10 @@ public class WorkoutService {
         }
     }
 
+    /**
+     * InitializeWorkout.
+     * @param workout workout being processed
+     */
     private void initializeWorkout(Workout workout) {
         workout.getWorkoutExercises().size();
         for (WorkoutExercise workoutExercise : workout.getWorkoutExercises()) {

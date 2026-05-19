@@ -27,6 +27,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    /**
+     * DoFilterInternal.
+     * @param request request payload
+     * @param response response payload
+     * @param filterChain filter chain
+     */
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
