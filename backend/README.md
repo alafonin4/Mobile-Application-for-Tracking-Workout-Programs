@@ -1,19 +1,19 @@
 # Backend
 
-Backend-часть проекта представляет собой набор Spring Boot микросервисов, объединённых через Eureka и API Gateway. Эта часть отвечает за аутентификацию, профили пользователей, социальные функции, тренировки, программы, аналитику прогресса, персонализацию и уведомления.
+The backend is a set of Spring Boot microservices connected through Eureka and an API Gateway. It is responsible for authentication, user profiles, social features, workouts, training programs, analytics, personalization, and notifications.
 
-## Состав backend
+## Backend Modules
 
-В каталоге [backend](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend) находятся следующие сервисы:
+The [backend](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend) directory contains:
 
-- `discovery-server` - сервис регистрации и обнаружения микросервисов
-- `api-gateway` - единая точка входа для мобильного клиента
-- `auth-service` - регистрация, вход, JWT, смена пароля, удаление аккаунта
-- `user-service` - профиль пользователя, аватар, базовые публичные данные
-- `social-service` - друзья, заявки, соревнования, социальная персонализация, уведомления
-- `workout-service` - тренировки, тренировочные программы, упражнения, избранное, прогресс и адаптация
+- `discovery-server` - service registration and discovery
+- `api-gateway` - single entry point for the mobile client
+- `auth-service` - registration, login, JWT, password change, account deletion
+- `user-service` - user profile, avatar, basic public user data
+- `social-service` - friends, friend requests, competitions, social personalization, notifications
+- `workout-service` - workouts, training programs, exercises, favorites, progress analytics, and adaptation
 
-## Архитектура backend
+## Backend Architecture
 
 ```text
                  +--------------------+
@@ -37,65 +37,65 @@ Backend-часть проекта представляет собой набор
                     | :8086       |
                     +-------------+
 
-Мобильный клиент -> api-gateway :8083 -> бизнес-сервисы
+Mobile client -> api-gateway :8083 -> business services
 ```
 
-Каждый бизнес-сервис использует собственную PostgreSQL-базу данных. Внешние запросы от клиента должны идти через `api-gateway`, а внутренние вызовы между сервисами выполняются через service discovery.
+Each business service uses its own PostgreSQL database. External requests from the client should go through `api-gateway`, while internal service-to-service communication relies on service discovery.
 
-## Ответственность сервисов
+## Service Responsibilities
 
 ### `discovery-server`
 
-- регистрация микросервисов в системе
-- обнаружение сервисов по имени
-- инфраструктурная зависимость для `api-gateway` и межсервисных вызовов
+- registers services in the system
+- resolves services by name
+- infrastructure dependency for `api-gateway` and internal calls
 
 ### `api-gateway`
 
-- проксирование клиентских HTTP-запросов
-- централизованное описание маршрутов
-- единая входная точка для мобильного приложения
+- proxies client HTTP requests
+- holds centralized route definitions
+- exposes a single entry point for the mobile application
 
-Маршруты описаны в [api-gateway/src/main/resources/application.properties](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/api-gateway/src/main/resources/application.properties).
+Route definitions are stored in [api-gateway/src/main/resources/application.properties](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/api-gateway/src/main/resources/application.properties).
 
 ### `auth-service`
 
-- регистрация пользователя
-- вход пользователя
-- генерация и валидация JWT
-- получение `user-info` по токену
-- смена пароля
-- удаление аккаунта
+- user registration
+- user login
+- JWT generation and validation
+- `user-info` lookup by token
+- password change
+- account deletion
 
-Основные контроллеры:
+Main controllers:
 
 - [AuthController.java](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/auth-service/src/main/java/ru/alafonin4/authserver/controllers/AuthController.java)
 - [TokenController.java](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/auth-service/src/main/java/ru/alafonin4/authserver/controllers/TokenController.java)
 
 ### `user-service`
 
-- создание профиля после регистрации
-- получение профиля по `id`
-- обновление профиля
-- удаление профиля
-- получение списка всех пользователей
-- хранение `avatarUrl` и публичных полей профиля
+- create the profile after registration
+- get a profile by `id`
+- update a profile
+- delete a profile
+- return all users
+- store `avatarUrl` and public profile fields
 
-Основной контроллер:
+Main controller:
 
 - [UserController.java](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/user-service/src/main/java/ru/alafonin4/userservice/controller/UserController.java)
 
 ### `social-service`
 
-- отправка заявок в друзья
-- принятие, отмена, отклонение и удаление из друзей
-- определение отношений между пользователями
-- общие соревнования
-- пользовательские соревнования
-- приглашения в соревнования
-- ленты уведомлений и социальные инсайты
+- send friend requests
+- accept, cancel, reject, and remove friendships
+- resolve the relationship between two users
+- global competitions
+- user-created competitions
+- competition invitations
+- notification feeds and social insights
 
-Основные контроллеры:
+Main controllers:
 
 - [FriendRequestController.java](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/social-service/src/main/java/ru/alafonin4/socialservice/controllers/FriendRequestController.java)
 - [CompetitionController.java](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/social-service/src/main/java/ru/alafonin4/socialservice/controllers/CompetitionController.java)
@@ -103,40 +103,40 @@ Backend-часть проекта представляет собой набор
 
 ### `workout-service`
 
-- CRUD тренировок
-- CRUD тренировочных программ
-- каталог упражнений
-- избранные упражнения пользователя
-- прогресс по пользователю
-- прогресс по упражнению
-- прогресс по диапазону дат
-- персонализация, достижения, адаптация программы
+- workout CRUD
+- training program CRUD
+- exercise catalog
+- favorite exercises per user
+- user progress
+- exercise-specific progress
+- progress by date range
+- personalization, achievements, and program adaptation
 
-Основные контроллеры:
+Main controllers:
 
 - [WorkoutController.java](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/workout-service/src/main/java/ru/alafonin4/workoutservice/controller/WorkoutController.java)
 - [TrainingProgramController.java](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/workout-service/src/main/java/ru/alafonin4/workoutservice/controller/TrainingProgramController.java)
 - [ExerciseController.java](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/workout-service/src/main/java/ru/alafonin4/workoutservice/controller/ExerciseController.java)
 - [PersonalizationController.java](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/workout-service/src/main/java/ru/alafonin4/workoutservice/controller/PersonalizationController.java)
 
-## Базы данных
+## Databases
 
-Backend ожидает наличие четырёх PostgreSQL-баз:
+The backend expects four PostgreSQL databases:
 
 - `auth`
 - `users`
 - `social`
 - `workout`
 
-В Docker-сценарии для каждой базы уже предусмотрен отдельный контейнер. При локальном запуске без Docker их нужно создать вручную.
+In the Docker setup, each database already has its own container. For a local non-Docker setup, they must be created manually.
 
-## Конфигурация
+## Configuration
 
-### Docker-переменные
+### Docker environment variables
 
-Пример переменных окружения находится в [backend/.env.example](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/.env.example).
+Example environment variables are provided in [backend/.env.example](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/.env.example).
 
-Основные параметры:
+Main parameters:
 
 - `POSTGRES_USER`
 - `AUTH_DB_PASSWORD`
@@ -149,13 +149,13 @@ Backend ожидает наличие четырёх PostgreSQL-баз:
 - `LOGGING_LEVEL_GATEWAY`
 - `LOGGING_LEVEL_GATEWAY_ROUTES`
 
-### Локальные `application.properties`
+### Local `application.properties`
 
-Если сервисы запускаются без Docker, datasource и Eureka можно переопределять через стандартные Spring Boot свойства или правкой `application.properties` внутри конкретного сервиса.
+If the services are started without Docker, datasource and Eureka settings can be overridden through standard Spring Boot properties or by updating `application.properties` inside each module.
 
-## Локальный запуск
+## Local Run
 
-Из каталога [backend](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend):
+From [backend](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend):
 
 ```bash
 mvn spring-boot:run -pl discovery-server
@@ -166,7 +166,7 @@ mvn spring-boot:run -pl social-service
 mvn spring-boot:run -pl workout-service
 ```
 
-Рекомендуемый порядок:
+Recommended order:
 
 1. `discovery-server`
 2. `api-gateway`
@@ -175,27 +175,27 @@ mvn spring-boot:run -pl workout-service
 5. `social-service`
 6. `workout-service`
 
-## Запуск через Docker Compose
+## Run with Docker Compose
 
-Из каталога [backend](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend):
+From [backend](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend):
 
 ```bash
 docker compose up --build -d
 ```
 
-Файл оркестрации:
+Compose file:
 
 - [docker-compose.yml](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/docker-compose.yml)
 
-Compose-стек поднимает:
+The Compose stack starts:
 
-- все микросервисы
-- все PostgreSQL-базы
-- сетевое окружение между контейнерами
+- all microservices
+- all PostgreSQL databases
+- shared network wiring between containers
 
-## Основные группы endpoint'ов
+## Main Endpoint Groups
 
-Через `api-gateway` доступны следующие основные группы маршрутов:
+The following route groups are exposed through `api-gateway`:
 
 - `/api/auth/*`
 - `/token/*`
@@ -209,47 +209,47 @@ Compose-стек поднимает:
 - `/api/social-personalization/*`
 - `/api/notifications/*`
 
-Если нужно посмотреть точные пути и HTTP-методы, их удобнее всего смотреть в двух местах:
+If you need exact paths and HTTP methods, the best places to inspect are:
 
 - [api-gateway application.properties](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/api-gateway/src/main/resources/application.properties)
-- конкретные `Controller`-классы каждого сервиса
+- the controller classes in each service
 
-## Сборка и тесты
+## Build and Test
 
-Из каталога [backend](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend):
+From [backend](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend):
 
 ```bash
 mvn test
 ```
 
-Также можно запускать отдельный модуль:
+You can also run a single module:
 
 ```bash
 mvn test -pl workout-service
 ```
 
-Или:
+Or:
 
 ```bash
 mvn spring-boot:run -pl auth-service
 ```
 
-## Что стоит проверить вручную
+## Manual Smoke Checks
 
-После запуска backend полезно проверить такие сценарии:
+After the backend starts, it is useful to verify:
 
-1. Регистрация и логин пользователя
-2. Получение `user-info` по токену
-3. Создание и обновление профиля
-4. Создание тренировки и получение тренировок по `userId`
-5. Создание и редактирование тренировочной программы
-6. Получение каталога упражнений и избранных упражнений
-7. Отправка и принятие заявки в друзья
-8. Получение общих и пользовательских соревнований
-9. Получение прогресса и персонализации
+1. User registration and login
+2. `user-info` lookup by token
+3. Profile creation and update
+4. Workout creation and workout fetch by `userId`
+5. Training program creation and update
+6. Exercise catalog and favorites
+7. Friend request send and accept flow
+8. Global and custom competition endpoints
+9. Progress and personalization endpoints
 
-## Примечания
+## Notes
 
-- Система ориентирована на запуск нескольких независимых сервисов, поэтому при отладке важно следить не только за ошибкой конкретного модуля, но и за доступностью `Eureka`, `Gateway` и зависимых БД.
-- Некоторые frontend-сценарии жёстко завязаны на gateway-маршруты, поэтому при добавлении нового endpoint его обычно нужно явно прописывать в `api-gateway`.
-- Для backend-модулей в репозитории уже есть `Dockerfile`, что упрощает развёртывание на сервере и демонстрацию проекта.
+- Because the system is split into multiple services, debugging usually requires checking not only the failing module but also `Eureka`, `Gateway`, and the dependent databases.
+- Several frontend flows depend on explicitly declared gateway routes, so when a new endpoint is added it usually also needs a route in `api-gateway`.
+- Every backend module already includes a `Dockerfile`, which makes deployment and demo setup easier.

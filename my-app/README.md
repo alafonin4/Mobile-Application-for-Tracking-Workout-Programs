@@ -1,23 +1,23 @@
 # Frontend
 
-`my-app` - это мобильный клиент проекта, построенный на Expo, React Native и Expo Router. Он работает как интерфейс для всех пользовательских сценариев: авторизация, профиль, друзья, тренировки, упражнения, аналитика, соревнования и уведомления.
+`my-app` is the mobile client for the project, built with Expo, React Native, and Expo Router. It provides the user-facing flows for authentication, profile management, friends, workouts, exercises, analytics, competitions, and notifications.
 
-## Назначение клиента
+## Client Responsibilities
 
-Frontend отвечает за:
+The frontend is responsible for:
 
-- авторизацию и хранение пользовательской сессии
-- отображение и редактирование профиля
-- загрузку аватара
-- навигацию по вкладкам и внутренним stack-экранам
-- отображение друзей, заявок и других профилей
-- создание тренировок и программ
-- выбор упражнений с фильтрами и избранным
-- визуализацию прогресса через графики
-- отображение соревнований и лидербордов
-- показ уведомлений и персонализированных блоков
+- authentication and session persistence
+- profile display and editing
+- avatar upload
+- tab navigation and nested stack navigation
+- displaying friends, requests, and other user profiles
+- creating workouts and training programs
+- selecting exercises with filters and favorites
+- visualizing progress through charts
+- rendering competitions and leaderboards
+- showing notifications and personalized blocks
 
-## Технологии
+## Technology Stack
 
 - React Native
 - Expo 55
@@ -29,103 +29,103 @@ Frontend отвечает за:
 - Expo Secure Store
 - Expo Image Picker
 
-## Структура каталога
+## Directory Structure
 
-Основные каталоги внутри [my-app](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app):
+Main directories inside [my-app](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app):
 
 ```text
 my-app/
-|-- api/          # HTTP-обёртки по доменам
-|-- app/          # file-based routing на Expo Router
-|-- assets/       # статические ресурсы
-|-- components/   # переиспользуемые UI-компоненты
-|-- constants/    # константы и конфиг
-|-- context/      # контекст сессии и общее состояние
-|-- hooks/        # пользовательские хуки
-|-- styles/       # стили и темы
-|-- utils/        # вспомогательная логика
-`-- validation/   # схемы валидации
+|-- api/          # HTTP wrappers grouped by domain
+|-- app/          # file-based routes with Expo Router
+|-- assets/       # static assets
+|-- components/   # reusable UI components
+|-- constants/    # constants and config
+|-- context/      # session context and shared state
+|-- hooks/        # custom hooks
+|-- styles/       # styles and theme pieces
+|-- utils/        # helper logic
+`-- validation/   # validation schemas
 ```
 
-## Организация маршрутов
+## Routing Structure
 
-Клиент использует file-based routing через Expo Router.
+The client uses file-based routing through Expo Router.
 
-### Корневые группы экранов
+### Top-level route groups
 
-- `app/(auth)` - экраны входа и регистрации
-- `app/(tabs)` - основная часть приложения после авторизации
+- `app/(auth)` - login and registration screens
+- `app/(tabs)` - main application after authentication
 
-### Нижняя навигация
+### Bottom tab navigation
 
-В [app/(tabs)/_layout.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/_layout.jsx) описаны основные вкладки:
+[app/(tabs)/_layout.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/_layout.jsx) defines the main tabs:
 
-- соревнования
-- друзья
-- тренировки
-- упражнения
-- уведомления
-- профиль
+- competitions
+- friends
+- workouts
+- exercises
+- notifications
+- profile
 
-### Вложенные разделы
+### Nested sections
 
-- `app/(tabs)/(workout)` - тренировки, программы, прогресс и экраны деталей
-- `app/(tabs)/(exercises)` - каталог упражнений и экран упражнения
-- `app/(tabs)/(friends)` - друзья и заявки
-- `app/(tabs)/(profile)` - профиль, редактирование, смена пароля, достижения и профиль другого пользователя
+- `app/(tabs)/(workout)` - workouts, programs, progress, and detail screens
+- `app/(tabs)/(exercises)` - exercise catalog and exercise detail
+- `app/(tabs)/(friends)` - friends and requests
+- `app/(tabs)/(profile)` - profile, edit profile, change password, achievements, and another user's profile
 
-## Ключевые пользовательские сценарии
+## Main User Flows
 
-### Аутентификация
+### Authentication
 
-Файлы:
+Files:
 
 - [app/(auth)/index.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(auth)/index.jsx)
 - [app/(auth)/sign_up.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(auth)/sign_up.jsx)
 
-Возможности:
+Features:
 
-- вход
-- регистрация
-- сохранение токена и пользовательской сессии
-- переход между auth и tab-частью приложения
+- login
+- registration
+- token and session persistence
+- navigation between auth and tabs
 
-### Профиль
+### Profile
 
-Файлы:
+Files:
 
 - [app/(tabs)/(profile)/index.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/(profile)/index.jsx)
 - [app/(tabs)/(profile)/edit.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/(profile)/edit.jsx)
 - [app/(tabs)/(profile)/password.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/(profile)/password.jsx)
 - [app/(tabs)/(profile)/[id].jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/(profile)/[id].jsx)
 
-Возможности:
+Features:
 
-- просмотр своего профиля
-- просмотр профиля другого пользователя
-- редактирование личных данных
-- выбор аватара из галереи
-- смена пароля
-- удаление аккаунта и выход
-- просмотр spider diagram для другого пользователя
+- view your own profile
+- view another user's profile
+- edit personal information
+- choose an avatar from the gallery
+- change password
+- delete account and log out
+- show a spider chart for another user
 
-### Друзья и социальные связи
+### Friends and relationships
 
-Файл:
+File:
 
 - [app/(tabs)/(friends)/index.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/(friends)/index.jsx)
 
-Возможности:
+Features:
 
-- список друзей
-- входящие и исходящие заявки
-- принятие заявки
-- переход в профиль пользователя
-- отображение кнопки действия в зависимости от отношений
+- friends list
+- incoming and outgoing requests
+- accept requests
+- open a user's profile
+- display a relationship-specific action button
 
-### Тренировки и программы
+### Workouts and programs
 
-Файлы:
+Files:
 
 - [app/(tabs)/(workout)/index.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/(workout)/index.jsx)
 - [app/(tabs)/(workout)/create-workout.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/(workout)/create-workout.jsx)
@@ -134,77 +134,77 @@ my-app/
 - [app/(tabs)/(workout)/workout-details.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/(workout)/workout-details.jsx)
 - [app/(tabs)/(workout)/program-details.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/(workout)/program-details.jsx)
 
-Возможности:
+Features:
 
-- просмотр списка тренировок и программ
-- создание тренировки
-- создание программы
-- редактирование программы
-- переход к экрану деталей тренировки
-- переход к экрану деталей программы
-- перенос упражнений из дня тренировочной программы в тренировку
+- browse workouts and training programs
+- create workouts
+- create training programs
+- edit programs
+- open workout detail
+- open program detail
+- import exercises from a program day into a workout
 
-### Каталог упражнений
+### Exercise catalog
 
-Файлы:
+Files:
 
 - [app/(tabs)/(exercises)/index.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/(exercises)/index.jsx)
 - [app/(tabs)/(exercises)/[id].jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/(exercises)/[id].jsx)
 - [components/AddExerciseModal.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/components/AddExerciseModal.jsx)
 
-Возможности:
+Features:
 
-- просмотр списка упражнений
-- экран конкретного упражнения
-- фильтрация по мышечной группе
-- фильтрация по необходимости дополнительного веса
-- управление избранными упражнениями
-- при выборе в тренировку избранные выводятся первыми
+- browse the exercise catalog
+- open a specific exercise
+- filter by muscle group
+- filter by whether additional weight is required
+- manage favorite exercises
+- show favorites first when selecting an exercise for a workout
 
-### Прогресс и графики
+### Progress and charts
 
-Файлы:
+Files:
 
 - [app/(tabs)/(workout)/progress.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/(workout)/progress.jsx)
 - [components/charts/SpiderChart.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/components/charts/SpiderChart.jsx)
 - [components/charts/LineChart.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/components/charts/LineChart.jsx)
 
-Возможности:
+Features:
 
-- spider diagram по мышечным группам
-- линейный график по общему прогрессу
-- линейный график по мышечной группе
-- график по конкретному упражнению
-- выбор периода `1`, `3`, `6` месяцев
+- spider chart by muscle group
+- line chart for overall progress
+- line chart by muscle group
+- chart for a specific exercise
+- period selection for `1`, `3`, and `6` months
 
-### Соревнования
+### Competitions
 
-Файл:
+File:
 
 - [app/(tabs)/CompetitionScreen.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/CompetitionScreen.jsx)
 
-Возможности:
+Features:
 
-- общий лидерборд
-- лидерборд среди друзей
-- персональные соревнования
-- создание соревнования
-- принятие приглашений
-- переход из списка участников в профиль пользователя
+- global leaderboard
+- friends leaderboard
+- custom competitions
+- competition creation
+- invitation acceptance
+- profile navigation from leaderboard rows
 
-### Уведомления
+### Notifications
 
-Файл:
+File:
 
 - [app/(tabs)/notifications.jsx](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/app/(tabs)/notifications.jsx)
 
-Возможности:
+Features:
 
-- просмотр социальных и персонализированных уведомлений
+- social and personalization notification feed
 
-## API-слой
+## API Layer
 
-Все HTTP-запросы сгруппированы по каталогам внутри [api](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/api):
+All HTTP requests are grouped inside [api](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/api):
 
 - `api/auth`
 - `api/user`
@@ -213,40 +213,40 @@ my-app/
 - `api/exercises`
 - `api/workout`
 
-Такой слой нужен, чтобы:
+This layer helps:
 
-- не писать `axios`-вызовы прямо в экранах
-- переиспользовать запросы между экранами
-- централизованно менять маршруты и формат данных
+- keep `axios` calls out of screen components
+- reuse requests across screens
+- update routes and payload mapping in one place
 
-## Важная настройка API_URL
+## Important `API_URL` Setting
 
-Frontend не определяет backend-адрес автоматически. Он берётся из [constants/api_url.js](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/constants/api_url.js).
+The frontend does not auto-detect the backend address. It uses [constants/api_url.js](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/constants/api_url.js).
 
-Сейчас там хранится конкретный адрес:
+Current value:
 
 ```js
 export const API_URL = "http://10.110.84.28:8083";
 ```
 
-Перед запуском проверь, что этот адрес соответствует твоему backend.
+Before running the app, make sure this address matches your backend.
 
-Частые варианты:
+Common values:
 
 - `http://localhost:8083`
-- `http://10.0.2.2:8083` для Android-эмулятора
-- локальный IP компьютера в Wi-Fi сети для физического телефона
+- `http://10.0.2.2:8083` for the Android emulator
+- your computer's local IP for a physical phone on the same Wi-Fi network
 
-## Установка и запуск
+## Install and Run
 
-Из каталога [my-app](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app):
+From [my-app](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app):
 
 ```bash
 npm install
 npm run start
 ```
 
-Дополнительные команды:
+Additional commands:
 
 ```bash
 npm run android
@@ -254,17 +254,17 @@ npm run ios
 npm run web
 ```
 
-Текущие стартовые скрипты уже учитывают локальные ограничения Expo и запускают приложение без doctor-проверки, которая может падать в offline-среде.
+The current start scripts already account for local Expo limitations and disable the doctor check that may fail in offline environments.
 
-## Полезные команды разработки
+## Useful Development Commands
 
-Типизация:
+Type checking:
 
 ```bash
 npx tsc --noEmit
 ```
 
-Тесты:
+Tests:
 
 ```bash
 npm test
@@ -276,30 +276,30 @@ Lint:
 npm run lint
 ```
 
-## Что важно учитывать при разработке
+## Development Notes
 
-- Приложение использует file-based routing, поэтому новые экраны лучше добавлять в `app/`, а не настраивать вручную в одном месте.
-- Некоторые backend-ответы собираются из нескольких сервисов, поэтому экран может зависеть сразу от `user-service`, `social-service` и `workout-service`.
-- Для мобильной отладки часто проблема не в коде экрана, а в неправильном `API_URL`.
-- Часть экранов использует данные текущего пользователя через сессионный контекст и хук `useUserId`, поэтому любые изменения сессии лучше проверять end-to-end.
+- The app uses file-based routing, so new screens should generally be added in `app/` instead of being wired manually in a single navigation file.
+- Some screens combine data from multiple backend services, so a single UI issue may depend on `user-service`, `social-service`, and `workout-service` at the same time.
+- For mobile debugging, problems are often caused by an incorrect `API_URL` rather than the screen logic itself.
+- Several screens depend on session context and the `useUserId` hook, so session-related changes should be tested end-to-end.
 
-## Что стоит проверить вручную
+## Manual Checks
 
-После запуска приложения полезно пройти такие сценарии:
+After starting the app, it is useful to verify:
 
-1. Регистрация и логин
-2. Загрузка профиля и редактирование профиля
-3. Смена пароля
-4. Загрузка аватара
-5. Создание тренировки
-6. Создание программы и перенос упражнений из дня программы в тренировку
-7. Добавление упражнения через фильтры и избранное
-8. Просмотр графиков прогресса
-9. Работа с друзьями и переходами в чужой профиль
-10. Просмотр соревнований и приглашений
+1. Registration and login
+2. Profile loading and profile editing
+3. Password change
+4. Avatar upload
+5. Workout creation
+6. Training program creation and importing program-day exercises into a workout
+7. Exercise selection with filters and favorites
+8. Progress chart rendering
+9. Friend flows and navigation to another user's profile
+10. Competitions and invitations
 
-## Связанные документы
+## Related Documents
 
-- [README.md](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/README.md) - общий обзор проекта
-- [backend/README.md](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/README.md) - описание backend-части
-- [package.json](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/package.json) - зависимости и команды клиента
+- [README.md](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/README.md) - overall project overview
+- [backend/README.md](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/README.md) - backend documentation
+- [package.json](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/package.json) - client dependencies and scripts

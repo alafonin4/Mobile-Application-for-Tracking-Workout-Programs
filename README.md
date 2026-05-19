@@ -1,122 +1,122 @@
 # Mobile Application for Tracking Workout Programs
 
-Мобильное приложение и backend-платформа для ведения тренировок, работы с тренировочными программами, анализа прогресса, социальной активности и соревнований между пользователями.
+Mobile application and backend platform for workout logging, training program management, progress analytics, social features, and competitions between users.
 
-## О проекте
+## Overview
 
-Репозиторий состоит из двух крупных частей:
+This repository contains two major parts:
 
-- `backend/` - набор Spring Boot микросервисов
-- `my-app/` - мобильный клиент на Expo / React Native
+- `backend/` - Spring Boot microservices
+- `my-app/` - Expo / React Native mobile client
 
-Проект реализует полный пользовательский сценарий:
+The project covers the full user flow:
 
-- регистрация и авторизация
-- создание и редактирование профиля
-- добавление аватара
-- работа с друзьями и заявками
-- ведение тренировок и тренировочных программ
-- каталог упражнений, избранные упражнения и фильтрация
-- аналитика прогресса по тренировкам, мышечным группам и упражнениям
-- общие и пользовательские соревнования
-- персонализация, достижения и уведомления
+- registration and login
+- profile creation and editing
+- avatar upload
+- friend requests and friendships
+- workout and training program management
+- exercise catalog, favorites, and filtering
+- progress analytics by workout, muscle group, and exercise
+- global and custom competitions
+- personalization, achievements, and notifications
 
-## Архитектура
+## Architecture
 
-Backend построен как микросервисная система с Eureka Service Discovery и единым API Gateway.
+The backend is built as a microservice system with Eureka Service Discovery and a single API Gateway.
 
-### Сервисы
+### Services
 
-- `discovery-server` - реестр сервисов, порт `8761`
-- `api-gateway` - единая точка входа для клиента, порт `8083`
-- `auth-service` - авторизация, JWT, смена пароля, удаление аккаунта, порт `8082`
-- `user-service` - профиль пользователя, аватар, публичные данные, порт `8084`
-- `social-service` - друзья, заявки, соревнования, социальная персонализация, уведомления, порт `8085`
-- `workout-service` - тренировки, программы, упражнения, избранное, аналитика прогресса, персонализация, порт `8086`
+- `discovery-server` - service registry, port `8761`
+- `api-gateway` - public entry point for the client, port `8083`
+- `auth-service` - authentication, JWT, password change, account deletion, port `8082`
+- `user-service` - user profile, avatar, public user data, port `8084`
+- `social-service` - friends, requests, competitions, social personalization, notifications, port `8085`
+- `workout-service` - workouts, training programs, exercises, favorites, progress analytics, personalization, port `8086`
 
-### Взаимодействие компонентов
+### Component interaction
 
 ```text
-Мобильный клиент
-        |
-        v
-  API Gateway :8083
-        |
-        +--> auth-service
-        +--> user-service
-        +--> social-service
-        +--> workout-service
-                 ^
-                 |
-          PostgreSQL БД по сервисам
+Mobile client
+      |
+      v
+API Gateway :8083
+      |
+      +--> auth-service
+      +--> user-service
+      +--> social-service
+      +--> workout-service
+               ^
+               |
+      PostgreSQL databases per service
 ```
 
-Клиент должен отправлять внешние запросы через `api-gateway`. Внутреннее взаимодействие сервисов идёт через Eureka и `lb://...` маршруты.
+The client should send external requests through `api-gateway`. Internal service-to-service communication uses Eureka and `lb://...` routes.
 
-## Основные возможности
+## Main Features
 
-### Аутентификация и аккаунт
+### Authentication and account
 
-- регистрация и вход по email/паролю
-- хранение JWT-сессии на клиенте
-- изменение пароля
-- удаление аккаунта
+- registration and login with email and password
+- JWT session persistence on the client
+- password change
+- account deletion
 
-### Профиль пользователя
+### User profile
 
-- просмотр своего профиля и профиля другого пользователя
-- редактирование имени, фамилии, bio, веса и цели
-- загрузка аватара из галереи
-- отображение достижений, рекордов и персонализированных инсайтов
+- view your own profile and other users' profiles
+- edit first name, last name, bio, weight, and goal
+- upload an avatar from the gallery
+- show achievements, records, and personalized insights
 
-### Тренировки и программы
+### Workouts and programs
 
-- создание тренировок с упражнениями, подходами, весом и повторениями
-- создание, просмотр и редактирование тренировочных программ
-- импорт упражнений в тренировку из выбранного дня программы
-- отдельные экраны деталей тренировки и программы
+- create workouts with exercises, sets, weight, and repetitions
+- create, view, and edit training programs
+- import exercises into a workout from a selected training day
+- dedicated workout and program detail screens
 
-### Каталог упражнений
+### Exercise catalog
 
-- список всех упражнений
-- фильтрация по группе мышц
-- фильтрация по необходимости дополнительного веса
-- избранные упражнения пользователя
-- при выборе упражнения в тренировку избранные показываются первыми
+- browse all exercises
+- filter by muscle group
+- filter by whether additional weight is required
+- manage per-user favorite exercises
+- show favorites first in the workout exercise picker
 
-### Аналитика прогресса
+### Progress analytics
 
-- общий прогресс пользователя
-- прогресс по мышечным группам
-- прогресс по конкретному упражнению
-- spider diagram по мышечным группам
-- графики динамики за `1`, `3` и `6` месяцев
-- серверный составной расчёт прогресса на основе объёма, интенсивности, плотности, регулярности, восстановления, баланса и рекордов
+- overall user progress
+- progress by muscle group
+- progress for a specific exercise
+- spider diagram for muscle groups
+- charts for `1`, `3`, and `6` month periods
+- server-side composite progress calculation based on volume, intensity, density, consistency, recovery, balance, and records
 
-### Социальные функции
+### Social features
 
-- отправка, принятие, отмена и отклонение заявок в друзья
-- переход из списка друзей в профиль пользователя
-- просмотр социального статуса по отношению к другому пользователю
+- send, accept, cancel, reject, and remove friendships
+- open a user's profile from the friends screen
+- show relationship-specific actions on another user's profile
 
-### Соревнования
+### Competitions
 
-- общий ежемесячный рейтинг по прогрессу среди всех пользователей
-- общий ежемесячный рейтинг среди друзей
-- пользовательские соревнования с приглашением друзей
-- поддержка разных целей соревнования:
-  - прогресс
-  - количество повторений в упражнении
-  - количество тренировок
+- global monthly progress leaderboard for all users
+- monthly leaderboard among friends
+- custom competitions with invited friends
+- support for multiple competition goals:
+  - progress
+  - exercise repetitions
+  - workout count
 
-### Персонализация и уведомления
+### Personalization and notifications
 
-- персональные достижения
-- адаптация тренировочных программ
-- социальная персонализация
-- внутриигровые уведомления по друзьям, соревнованиям и достижениям
+- personal achievements
+- training program adaptation
+- social personalization
+- in-app notifications for friends, competitions, and achievements
 
-## Структура репозитория
+## Repository Structure
 
 ```text
 .
@@ -137,7 +137,7 @@ Backend построен как микросервисная система с E
     `-- utils/
 ```
 
-## Технологический стек
+## Tech Stack
 
 ### Backend
 
@@ -163,30 +163,30 @@ Backend построен как микросервисная система с E
 - Expo Secure Store
 - Expo Image Picker
 
-## Требования для локального запуска
+## Requirements
 
 - JDK 21
 - Maven 3.9+
 - Node.js 20+
 - npm
-- PostgreSQL 16+ или Docker
-- Android Studio / эмулятор / Expo Go
+- PostgreSQL 16+ or Docker
+- Android Studio, emulator, or Expo Go
 
-## Быстрый старт
+## Quick Start
 
-### Вариант 1. Запуск backend через Docker
+### Option 1. Run the backend with Docker
 
-1. Перейти в каталог [backend](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend)
-2. Скопировать `backend/.env.example` в `.env`
-3. При необходимости поменять пароли и параметры БД
-4. Запустить:
+1. Go to [backend](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend)
+2. Copy `backend/.env.example` to `.env`
+3. Update database passwords and settings if needed
+4. Run:
 
 ```bash
 cd backend
 docker compose up --build -d
 ```
 
-Compose поднимет:
+The Compose stack starts:
 
 - `discovery-server`
 - `api-gateway`
@@ -194,18 +194,18 @@ Compose поднимет:
 - `user-service`
 - `social-service`
 - `workout-service`
-- отдельный PostgreSQL-контейнер для каждого бизнес-сервиса
+- one PostgreSQL container per business service
 
-### Вариант 2. Локальный запуск backend без Docker
+### Option 2. Run the backend locally without Docker
 
-Нужно создать PostgreSQL-базы:
+Create the following PostgreSQL databases:
 
 - `auth`
 - `users`
 - `social`
 - `workout`
 
-Затем запустить сервисы из [backend](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend) в таком порядке:
+Then start the services from [backend](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend):
 
 ```bash
 mvn spring-boot:run -pl discovery-server
@@ -216,7 +216,7 @@ mvn spring-boot:run -pl social-service
 mvn spring-boot:run -pl workout-service
 ```
 
-Рекомендуемый порядок запуска:
+Recommended startup order:
 
 1. `discovery-server`
 2. `api-gateway`
@@ -225,16 +225,16 @@ mvn spring-boot:run -pl workout-service
 5. `social-service`
 6. `workout-service`
 
-## Запуск мобильного клиента
+## Start the Mobile Client
 
-Из каталога [my-app](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app):
+From [my-app](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app):
 
 ```bash
 npm install
 npm run start
 ```
 
-Дополнительные команды:
+Additional commands:
 
 ```bash
 npm run android
@@ -242,41 +242,41 @@ npm run ios
 npm run web
 ```
 
-## Важная настройка frontend API
+## Important Frontend API Setting
 
-Адрес gateway сейчас задаётся вручную в [my-app/constants/api_url.js](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/constants/api_url.js):
+The gateway address is currently configured manually in [my-app/constants/api_url.js](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/constants/api_url.js):
 
 ```js
 export const API_URL = "http://10.110.84.28:8083";
 ```
 
-Перед локальным запуском нужно убедиться, что это значение указывает на реальный адрес `api-gateway` в вашей сети.
+Before running locally, make sure this value points to the actual `api-gateway` address in your environment.
 
-Примеры:
+Common examples:
 
-- эмулятор Android Studio: часто подходит `http://10.0.2.2:8083`
-- физическое устройство в одной Wi-Fi сети: IP вашего компьютера, например `http://192.168.1.10:8083`
-- web / локальная отладка на том же ПК: может подойти `http://localhost:8083`
+- Android Studio emulator: `http://10.0.2.2:8083`
+- physical device on the same Wi-Fi network: your computer's local IP, for example `http://192.168.1.10:8083`
+- local web debugging on the same machine: `http://localhost:8083`
 
-## Основные backend-маршруты
+## Main Backend Route Groups
 
-Ниже перечислены ключевые публичные группы endpoint'ов, доступные через `api-gateway`:
+The following public endpoint groups are exposed through `api-gateway`:
 
-- `/api/auth/*` - регистрация, вход, смена пароля, удаление аккаунта
-- `/token/*` - валидация токена и получение информации о пользователе
-- `/api/users/*` - работа с профилем пользователя
-- `/api/friendRequests/*` - заявки в друзья и отношения между пользователями
-- `/api/competitions/*` - рейтинги и пользовательские соревнования
-- `/api/workouts/*` - тренировки и прогресс
-- `/api/training-programs/*` - тренировочные программы
-- `/api/exercises/*` - каталог упражнений и избранное
-- `/api/personalization/*` - персонализация и адаптация программ
-- `/api/social-personalization/*` - социальная персонализация
-- `/api/notifications/*` - уведомления
+- `/api/auth/*` - registration, login, password change, account deletion
+- `/token/*` - token validation and current user info
+- `/api/users/*` - user profile management
+- `/api/friendRequests/*` - friend requests and user relationships
+- `/api/competitions/*` - leaderboards and custom competitions
+- `/api/workouts/*` - workouts and progress
+- `/api/training-programs/*` - training programs
+- `/api/exercises/*` - exercise catalog and favorites
+- `/api/personalization/*` - personalization and program adaptation
+- `/api/social-personalization/*` - social personalization
+- `/api/notifications/*` - notifications
 
-Подробные route-правила gateway находятся в [backend/api-gateway/src/main/resources/application.properties](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/api-gateway/src/main/resources/application.properties).
+Detailed gateway route definitions are stored in [backend/api-gateway/src/main/resources/application.properties](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/api-gateway/src/main/resources/application.properties).
 
-## Проверка и тесты
+## Testing and Verification
 
 ### Backend
 
@@ -287,7 +287,7 @@ mvn test
 
 ### Frontend
 
-Типизация:
+Type checking:
 
 ```bash
 cd my-app
@@ -306,33 +306,33 @@ Lint:
 npm run lint
 ```
 
-## Полезные файлы
+## Useful Files
 
-- [backend/README.md](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/README.md) - подробнее о backend
-- [my-app/README.md](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/README.md) - подробнее о мобильном клиенте
-- [backend/docker-compose.yml](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/docker-compose.yml) - запуск backend в контейнерах
-- [backend/.env.example](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/.env.example) - пример переменных окружения
-- [backend/pom.xml](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/pom.xml) - Maven aggregator для всех сервисов
-- [my-app/package.json](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/package.json) - frontend-зависимости и команды
+- [backend/README.md](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/README.md) - backend details
+- [my-app/README.md](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/README.md) - frontend details
+- [backend/docker-compose.yml](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/docker-compose.yml) - backend container orchestration
+- [backend/.env.example](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/.env.example) - example environment variables
+- [backend/pom.xml](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/backend/pom.xml) - Maven aggregator for all services
+- [my-app/package.json](E:/Diplom/Mobile-Application-for-Tracking-Workout-Programs/my-app/package.json) - frontend dependencies and scripts
 
-## Текущее состояние проекта
+## Current Project State
 
-Проект активно развивается, поэтому в репозитории уже реализованы и базовые CRUD-сценарии, и более сложные модули:
+The project already includes both standard CRUD scenarios and more advanced modules:
 
-- многошаговый подсчёт прогресса
-- дружба и социальные отношения
-- ежемесячные и пользовательские соревнования
-- персонализация
-- избранные упражнения
-- графическая аналитика на клиенте
+- multi-step progress calculation
+- friendship and social relationship flows
+- monthly and custom competitions
+- personalization
+- favorite exercises
+- chart-based analytics in the mobile client
 
-При этом часть конфигурации всё ещё ориентирована на локальную разработку, поэтому перед первым запуском стоит проверить:
+At the same time, part of the configuration is still optimized for local development, so before the first run it is worth checking:
 
-- `API_URL` во frontend
-- параметры PostgreSQL
-- доступность `Eureka`
-- порты `8082`, `8083`, `8084`, `8085`, `8086`, `8761`
+- frontend `API_URL`
+- PostgreSQL configuration
+- `Eureka` availability
+- ports `8082`, `8083`, `8084`, `8085`, `8086`, and `8761`
 
-## Лицензия
+## License
 
-В репозитории сейчас не добавлен отдельный файл лицензии. При необходимости его стоит определить отдельно.
+There is currently no dedicated license file in the repository. Add one separately if needed.
