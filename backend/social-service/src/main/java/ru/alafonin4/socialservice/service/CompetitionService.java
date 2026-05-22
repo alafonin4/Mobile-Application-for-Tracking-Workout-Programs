@@ -1,7 +1,10 @@
 package ru.alafonin4.socialservice.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -10,6 +13,8 @@ import ru.alafonin4.socialservice.dto.CompetitionCreateRequest;
 import ru.alafonin4.socialservice.dto.CompetitionLeaderboardEntryDto;
 import ru.alafonin4.socialservice.dto.CompetitionLeaderboardResponse;
 import ru.alafonin4.socialservice.dto.CompetitionOverviewDto;
+import ru.alafonin4.socialservice.dto.RemoteLeaderboardProgressEntryDto;
+import ru.alafonin4.socialservice.dto.RemoteLeaderboardProgressRequest;
 import ru.alafonin4.socialservice.dto.RemoteExerciseSetDto;
 import ru.alafonin4.socialservice.dto.RemoteProgressSummaryDto;
 import ru.alafonin4.socialservice.dto.RemoteUserDto;
@@ -69,9 +74,14 @@ public class CompetitionService {
     public CompetitionLeaderboardResponse getGlobalLeaderboard(Long currentUserId, int months) {
         LocalDate monthStart = YearMonth.now().atDay(1);
         LocalDate nextMonthStart = monthStart.plusMonths(1);
-        List<RemoteUserDto> users = fetchAllUsers();
+        List<RemoteUserDto> users = fetchAllUserSummaries();
+        Map<Long, RemoteLeaderboardProgressEntryDto> progressByUserId = fetchLeaderboardProgress(
+                users.stream().map(RemoteUserDto::getId).toList(),
+                monthStart,
+                nextMonthStart
+        );
         List<CompetitionLeaderboardEntryDto> entries = users.stream()
-                .map(user -> buildMonthlyProgressLeaderboardEntry(user, currentUserId, monthStart, nextMonthStart))
+                .map(user -> buildMonthlyProgressLeaderboardEntry(user, currentUserId, progressByUserId.get(user.getId())))
                 .sorted(Comparator.comparingDouble(CompetitionLeaderboardEntryDto::getScore).reversed()
                         .thenComparingDouble(CompetitionLeaderboardEntryDto::getProgressPercent).reversed()
                         .thenComparing(CompetitionLeaderboardEntryDto::getUserName, String.CASE_INSENSITIVE_ORDER))
@@ -94,6 +104,44 @@ public class CompetitionService {
     }
 
     /**
+     * Returns lightweight monthly leaderboard stats for the supplied user.
+     * @param currentUserId the identifier of the current user
+     * @return result of the operation
+     */
+    public LeaderboardStats getGlobalLeaderboardStats(Long currentUserId) {
+        LocalDate monthStart = YearMonth.now().atDay(1);
+        LocalDate nextMonthStart = monthStart.plusMonths(1);
+        List<RemoteUserDto> users = fetchAllUserSummaries();
+        Map<Long, RemoteLeaderboardProgressEntryDto> progressByUserId = fetchLeaderboardProgress(
+                users.stream().map(RemoteUserDto::getId).toList(),
+                monthStart,
+                nextMonthStart
+        );
+
+        List<RankedUser> rankedUsers = users.stream()
+                .map(user -> {
+                    RemoteLeaderboardProgressEntryDto progress = progressByUserId.get(user.getId());
+                    double score = progress == null ? 0 : progress.getCompositeScore();
+                    double progressPercent = progress == null ? 0 : progress.getProgressPercent();
+                    return new RankedUser(user.getId(), formatUserName(user, user.getId()), score, progressPercent);
+                })
+                .sorted(Comparator.comparingDouble(RankedUser::score).reversed()
+                        .thenComparingDouble(RankedUser::progressPercent).reversed()
+                        .thenComparing(RankedUser::userName, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+
+        Integer currentUserRank = null;
+        for (int i = 0; i < rankedUsers.size(); i++) {
+            if (Objects.equals(rankedUsers.get(i).userId(), currentUserId)) {
+                currentUserRank = i + 1;
+                break;
+            }
+        }
+
+        return new LeaderboardStats(rankedUsers.size(), currentUserRank);
+    }
+
+    /**
      * Returns the friends leaderboard.
      * @param currentUserId the identifier of the current user
      * @param months amount of months included in the analysis
@@ -104,10 +152,15 @@ public class CompetitionService {
         LocalDate nextMonthStart = monthStart.plusMonths(1);
         Set<Long> friendIds = getAcceptedFriendIds(currentUserId);
         friendIds.add(currentUserId);
+        List<RemoteUserDto> users = fetchUserSummaries(friendIds);
+        Map<Long, RemoteLeaderboardProgressEntryDto> progressByUserId = fetchLeaderboardProgress(
+                users.stream().map(RemoteUserDto::getId).toList(),
+                monthStart,
+                nextMonthStart
+        );
 
-        List<CompetitionLeaderboardEntryDto> entries = fetchAllUsers().stream()
-                .filter(user -> friendIds.contains(user.getId()))
-                .map(user -> buildMonthlyProgressLeaderboardEntry(user, currentUserId, monthStart, nextMonthStart))
+        List<CompetitionLeaderboardEntryDto> entries = users.stream()
+                .map(user -> buildMonthlyProgressLeaderboardEntry(user, currentUserId, progressByUserId.get(user.getId())))
                 .sorted(Comparator.comparingDouble(CompetitionLeaderboardEntryDto::getScore).reversed()
                         .thenComparingDouble(CompetitionLeaderboardEntryDto::getProgressPercent).reversed()
                         .thenComparing(CompetitionLeaderboardEntryDto::getUserName, String.CASE_INSENSITIVE_ORDER))
@@ -135,10 +188,14 @@ public class CompetitionService {
      * @return prepared list with the requested data
      */
     public List<CompetitionOverviewDto> getUserCompetitions(Long userId) {
-        Map<Long, RemoteUserDto> userMap = fetchAllUsers().stream()
+        List<Competition> competitions = competitionRepository.findDetailedByUserId(userId);
+        Set<Long> creatorIds = competitions.stream()
+                .map(Competition::getCreatorId)
+                .collect(Collectors.toSet());
+        Map<Long, RemoteUserDto> userMap = fetchUserSummaries(creatorIds).stream()
                 .collect(Collectors.toMap(RemoteUserDto::getId, user -> user, (left, right) -> left));
 
-        return competitionRepository.findDetailedByUserId(userId).stream()
+        return competitions.stream()
                 .map(competition -> toOverview(competition, userId, userMap))
                 .sorted(Comparator.comparing(CompetitionOverviewDto::getCurrentUserStatus)
                         .thenComparing(CompetitionOverviewDto::getId, Comparator.reverseOrder()))
@@ -196,7 +253,9 @@ public class CompetitionService {
                 .filter(participant -> participant.getStatus() == CompetitionParticipantStatus.ACCEPTED)
                 .collect(Collectors.toList());
 
-        Map<Long, RemoteUserDto> userMap = fetchAllUsers().stream()
+        Map<Long, RemoteUserDto> userMap = fetchUserSummaries(acceptedParticipants.stream()
+                .map(CompetitionParticipant::getUserId)
+                .collect(Collectors.toSet())).stream()
                 .collect(Collectors.toMap(RemoteUserDto::getId, user -> user, (left, right) -> left));
 
         List<CompetitionLeaderboardEntryDto> entries = acceptedParticipants.stream()
@@ -313,28 +372,18 @@ public class CompetitionService {
         return dto;
     }
 
-    /**
-     * Builds the monthly progress leaderboard entry.
-     * @param user user being processed
-     * @param currentUserId the identifier of the current user
-     * @param fromDate start date of the requested period
-     * @param toDateExclusive to date exclusive
-     * @return result of the operation
-     */
     private CompetitionLeaderboardEntryDto buildMonthlyProgressLeaderboardEntry(
             RemoteUserDto user,
             Long currentUserId,
-            LocalDate fromDate,
-            LocalDate toDateExclusive
+            RemoteLeaderboardProgressEntryDto progress
     ) {
-        RemoteProgressSummaryDto summary = fetchUserProgressInRange(user.getId(), fromDate, toDateExclusive).getSummary();
         CompetitionLeaderboardEntryDto entry = new CompetitionLeaderboardEntryDto();
         entry.setUserId(user.getId());
         entry.setUserName(formatUserName(user, user.getId()));
         entry.setAvatarUrl(user.getAvatarUrl());
-        entry.setScore(summary == null ? 0 : summary.getCompositeScore());
+        entry.setScore(progress == null ? 0 : progress.getCompositeScore());
         entry.setCurrentValue(entry.getScore());
-        entry.setProgressPercent(summary == null ? 0 : summary.getProgressPercent());
+        entry.setProgressPercent(progress == null ? 0 : progress.getProgressPercent());
         entry.setGoalProgressPercent(0);
         entry.setCurrentUser(Objects.equals(user.getId(), currentUserId));
         entry.setSubtitle(String.format(Locale.US, "Прогресс за месяц %.1f%%", entry.getProgressPercent()));
@@ -606,9 +655,29 @@ public class CompetitionService {
      * Loads all users required to enrich social responses.
      * @return prepared list with the requested data
      */
-    private List<RemoteUserDto> fetchAllUsers() {
-        RemoteUserDto[] response = restTemplate.getForObject("http://user-service/api/users", RemoteUserDto[].class);
+    private List<RemoteUserDto> fetchAllUserSummaries() {
+        RemoteUserDto[] response = restTemplate.getForObject("http://user-service/api/users/summary", RemoteUserDto[].class);
         return response == null ? List.of() : Arrays.asList(response);
+    }
+
+    /**
+     * Loads lightweight user summaries for the supplied identifiers.
+     * @param userIds target user identifiers
+     * @return prepared list with the requested data
+     */
+    private List<RemoteUserDto> fetchUserSummaries(Set<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+
+        ResponseEntity<RemoteUserDto[]> response = restTemplate.exchange(
+                "http://user-service/api/users/bulk",
+                HttpMethod.POST,
+                new HttpEntity<>(userIds.stream().filter(Objects::nonNull).toList()),
+                RemoteUserDto[].class
+        );
+        RemoteUserDto[] body = response.getBody();
+        return body == null ? List.of() : Arrays.asList(body);
     }
 
     /**
@@ -649,6 +718,48 @@ public class CompetitionService {
             response.setSummary(new RemoteProgressSummaryDto());
         }
         return response;
+    }
+
+    /**
+     * Loads progress entries for multiple users in a single remote call.
+     * @param userIds target user identifiers
+     * @param fromDate start date of the requested period
+     * @param toDateExclusive to date exclusive
+     * @return result of the operation
+     */
+    private Map<Long, RemoteLeaderboardProgressEntryDto> fetchLeaderboardProgress(
+            List<Long> userIds,
+            LocalDate fromDate,
+            LocalDate toDateExclusive
+    ) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Map.of();
+        }
+
+        RemoteLeaderboardProgressRequest request = new RemoteLeaderboardProgressRequest();
+        request.setUserIds(userIds);
+        request.setFromDate(fromDate);
+        request.setToDate(toDateExclusive);
+
+        ResponseEntity<RemoteLeaderboardProgressEntryDto[]> response = restTemplate.exchange(
+                "http://workout-service/api/workouts/progress/leaderboard",
+                HttpMethod.POST,
+                new HttpEntity<>(request),
+                RemoteLeaderboardProgressEntryDto[].class
+        );
+        RemoteLeaderboardProgressEntryDto[] body = response.getBody();
+        if (body == null) {
+            return Map.of();
+        }
+
+        return Arrays.stream(body)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(
+                        RemoteLeaderboardProgressEntryDto::getUserId,
+                        item -> item,
+                        (left, right) -> left,
+                        HashMap::new
+                ));
     }
 
     /**
@@ -720,5 +831,11 @@ public class CompetitionService {
             boolean targetReached,
             String subtitle
     ) {
+    }
+
+    public record LeaderboardStats(int totalParticipants, Integer currentUserRank) {
+    }
+
+    private record RankedUser(Long userId, String userName, double score, double progressPercent) {
     }
 }

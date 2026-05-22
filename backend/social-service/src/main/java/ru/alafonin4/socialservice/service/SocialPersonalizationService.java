@@ -3,7 +3,6 @@ package ru.alafonin4.socialservice.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.alafonin4.socialservice.dto.CompetitionLeaderboardResponse;
 import ru.alafonin4.socialservice.dto.SocialAchievementDto;
 import ru.alafonin4.socialservice.dto.SocialPersonalizationResponse;
 import ru.alafonin4.socialservice.entities.Competition;
@@ -61,9 +60,9 @@ public class SocialPersonalizationService {
 
         completedCompetitions.sort(Comparator.comparing(CompletedCompetitionRecord::completedAt));
 
-        CompetitionLeaderboardResponse globalLeaderboard = competitionService.getGlobalLeaderboard(userId, 1);
-        int totalParticipants = globalLeaderboard.getEntries() == null ? 0 : globalLeaderboard.getEntries().size();
-        int rank = globalLeaderboard.getCurrentUserRank() == null ? totalParticipants : globalLeaderboard.getCurrentUserRank();
+        CompetitionService.LeaderboardStats globalLeaderboardStats = competitionService.getGlobalLeaderboardStats(userId);
+        int totalParticipants = globalLeaderboardStats.totalParticipants();
+        int rank = globalLeaderboardStats.currentUserRank() == null ? totalParticipants : globalLeaderboardStats.currentUserRank();
         double percentile = totalParticipants == 0 ? 100 : ((double) rank / totalParticipants) * 100.0;
         double outrunPercent = Math.max(0, 100 - percentile);
 

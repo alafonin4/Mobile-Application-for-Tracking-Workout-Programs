@@ -8,6 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import ru.alafonin4.socialservice.enums.CompetitionGoalType;
@@ -17,7 +18,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "competitions")
+@Table(
+        name = "competitions",
+        indexes = {
+                @Index(name = "idx_competition_creator_created", columnList = "creatorId,createdAt")
+        }
+)
 public class Competition {
 
     @Id

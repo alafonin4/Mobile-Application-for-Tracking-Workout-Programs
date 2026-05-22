@@ -7,6 +7,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -15,7 +16,13 @@ import ru.alafonin4.socialservice.enums.CompetitionParticipantStatus;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "competition_participants")
+@Table(
+        name = "competition_participants",
+        indexes = {
+                @Index(name = "idx_competition_participant_competition_user", columnList = "competition_id,userId"),
+                @Index(name = "idx_competition_participant_user_status", columnList = "userId,status")
+        }
+)
 public class CompetitionParticipant {
 
     @Id

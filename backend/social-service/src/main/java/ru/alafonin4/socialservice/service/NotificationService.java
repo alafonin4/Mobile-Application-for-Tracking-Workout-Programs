@@ -1,6 +1,9 @@
 package ru.alafonin4.socialservice.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -26,9 +29,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,12 +58,21 @@ public class NotificationService {
      * @return result of the operation
      */
     public NotificationsResponse buildFeed(Long userId) {
-        Map<Long, RemoteUserDto> userMap = fetchAllUsers().stream()
+        List<FriendRequest> pendingReceived = friendRequestRepository.findByReceiverIdAndStatus(userId, FriendRequestStatus.PENDING);
+        List<FriendRequest> acceptedSent = friendRequestRepository.findBySenderIdAndStatus(userId, FriendRequestStatus.ACCEPTED);
+        List<Competition> competitions = competitionRepository.findDetailedByUserId(userId);
+
+        Set<Long> relatedUserIds = new HashSet<>();
+        pendingReceived.forEach(request -> relatedUserIds.add(request.getSenderId()));
+        acceptedSent.forEach(request -> relatedUserIds.add(request.getReceiverId()));
+        competitions.forEach(competition -> relatedUserIds.add(competition.getCreatorId()));
+
+        Map<Long, RemoteUserDto> userMap = fetchUsersByIds(relatedUserIds).stream()
                 .collect(Collectors.toMap(RemoteUserDto::getId, user -> user, (left, right) -> left, HashMap::new));
 
         List<NotificationEnvelope> items = new ArrayList<>();
 
-        for (FriendRequest request : friendRequestRepository.findByReceiverIdAndStatus(userId, FriendRequestStatus.PENDING)) {
+        for (FriendRequest request : pendingReceived) {
             items.add(new NotificationEnvelope(
                     request.getCreatedAt(),
                     toNotification(
@@ -75,7 +89,7 @@ public class NotificationService {
             ));
         }
 
-        for (FriendRequest request : friendRequestRepository.findBySenderIdAndStatus(userId, FriendRequestStatus.ACCEPTED)) {
+        for (FriendRequest request : acceptedSent) {
             LocalDateTime respondedAt = request.getRespondedAt();
             if (respondedAt == null || respondedAt.isBefore(LocalDateTime.now().minusDays(14))) {
                 continue;
@@ -97,7 +111,7 @@ public class NotificationService {
             ));
         }
 
-        for (Competition competition : competitionRepository.findDetailedByUserId(userId)) {
+        for (Competition competition : competitions) {
             CompetitionParticipant participant = competition.getParticipants().stream()
                     .filter(item -> Objects.equals(item.getUserId(), userId))
                     .findFirst()
@@ -248,9 +262,19 @@ public class NotificationService {
      * Loads all users required to enrich social responses.
      * @return prepared list with the requested data
      */
-    private List<RemoteUserDto> fetchAllUsers() {
-        RemoteUserDto[] response = restTemplate.getForObject("http://user-service/api/users", RemoteUserDto[].class);
-        return response == null ? List.of() : Arrays.asList(response);
+    private List<RemoteUserDto> fetchUsersByIds(Set<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+
+        ResponseEntity<RemoteUserDto[]> response = restTemplate.exchange(
+                "http://user-service/api/users/bulk",
+                HttpMethod.POST,
+                new HttpEntity<>(userIds.stream().filter(Objects::nonNull).toList()),
+                RemoteUserDto[].class
+        );
+        RemoteUserDto[] body = response.getBody();
+        return body == null ? List.of() : Arrays.asList(body);
     }
 
     /**
